@@ -18,7 +18,7 @@
     --joker-hit: #f5a623;
     --joker-miss: #7c6030;
     --text: #e8eaf2;
-    --muted: #6b7194;
+    --muted: #9ba3c4;
     --header-bg: #131722;
     --correct: #00c4a0;
     --wrong: #e84141;
@@ -169,17 +169,35 @@
      CONFIGURATION – edit here
      ════════════════════════════════ -->
 <script>
+// ┌──────────────────────────────────┐
+// │  SUPABASE CONFIG                 │
+// │  Replace with your project data  │
+// └──────────────────────────────────┘
 const SUPABASE_URL = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
+
+// Admin password (change this!)
 const ADMIN_PASSWORD = 'liga1992admin';
+
+// Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA = 'bl1';
-const SAISON = '2025';
-const PTS_CORRECT = 3;
-const PTS_TEND = 1;
-const PTS_JOKER = 2;
-const FUN_NAMES_MIDDLE = ['Orakel','Stratege','Kenner','Taktiker','Analyst','Beobachter','Mitläufer','Glõcksritter','Zufallstreffer','Hobbykicker'];
+const SAISON = '2025'; // 2025 = Saison 2025/26
+
+// Points system
+const PTS_CORRECT = 3;   // exact score
+const PTS_TEND = 1;      // correct tendency (W/D/L)
+const PTS_JOKER = 2;     // bonus if joker & correct tendency
+
+// Fun names by rank tier (for N players, assigned from top to bottom)
+// Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
+// Middle names repeat as needed
+const FUN_NAMES_MIDDLE = [
+  'Orakel', 'Stratege', 'Kenner', 'Taktiker', 'Analyst',
+  'Beobachter', 'Mitläufer', 'Glücksritter', 'Zufallstreffer', 'Hobbykicker'
+];
 </script>
 
+<!-- ════ HTML STRUCTURE ════ -->
 <div id="login-overlay" class="login-overlay">
   <div class="login-box">
     <h1>⚽ LigaLegends</h1>
@@ -188,7 +206,7 @@ const FUN_NAMES_MIDDLE = ['Orakel','Stratege','Kenner','Taktiker','Analyst','Beo
     <input id="login-pin" type="password" placeholder="PIN (4-stellig)" maxlength="6" inputmode="numeric">
     <button onclick="doLogin()">Einloggen</button>
     <div id="login-err" class="login-err"></div>
-    <div class="login-switch"><a href="ligalegends_1.html"">Admin-Zugang</a></div>
+    <div class="login-switch"><a onclick="showAdminLogin()">Admin-Zugang</a></div>
   </div>
 </div>
 
@@ -211,6 +229,7 @@ const FUN_NAMES_MIDDLE = ['Orakel','Stratege','Kenner','Taktiker','Analyst','Beo
       <button class="btn-sm" onclick="logout()">Abmelden</button>
     </div>
   </header>
+
   <div class="tabs">
     <div class="tab active" data-tab="uebersicht" onclick="switchTab('uebersicht')">Übersicht</div>
     <div class="tab" data-tab="gesamt" onclick="switchTab('gesamt')">Gesamt</div>
@@ -220,58 +239,624 @@ const FUN_NAMES_MIDDLE = ['Orakel','Stratege','Kenner','Taktiker','Analyst','Beo
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
+
+  <!-- Spieltag Nav (shown for overview tabs) -->
   <div id="spieltag-nav" class="spieltag-nav" style="display:none">
     <span>Spieltag</span>
     <div id="st-buttons"></div>
   </div>
+
+  <!-- Tab Contents -->
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-gesamt" style="display:none"><div class="loading">Lade Tabelle</div></div>
   <div id="tab-erste-halbserie" style="display:none"><div class="loading">Lade 1. Halbserie</div></div>
-  <div id="tab-zgeite-halbserie" style="display:none"><div class="loading">Lade 2. Halbserie</div></div>
+  <div id="tab-zweite-halbserie" style="display:none"><div class="loading">Lade 2. Halbserie</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
 </div>
 
+<!-- ════════════════════════════════
+     MAIN SCRIPT
+     ════════════════════════════════ -->
 <script>
+// ── Init Supabase ──
 const { createClient } = supabase;
 let db;
 try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase not configured'); }
-let currentUser = null, isAdmin = false, currentTab = 'uebersicht', currentSpieltag = 1, maxSpieltag = 34, allPlayers = [], allTipps = {}, allMatches = {}, allScores = {}, maumauData = [], tabLoaded = {};
-function assignFunNames(players){const n=players.length;if(!n)return players;const r=[...players];r[0].funname='Prophet';if(n>1)r[n-1].funname='Ehren-Laie';if(n>2){const m=n-2;for(let i=1;i<n-1;i++){const idx=Math.floor((i-1)/m*FUN_NAMES_MIDDLE.length);r[i].funname=FUN_NAMES_MIDDLE[Math.min(idx,VUL_NAMES_MIDDLE.length-1)];}}return r;}
-function showAdminLogin(){document.getElementById('login-overlay').style.display='none';document.getElementById('admin-login-overlay').style.display='flex';}
-function showPlayerLogin(){document.getElementById('admin-login-overlay').style.display='none';document.getElementById('login-overlay').style.display='flex';}
-async function doLogin(){const name=document.getElementById('login-name').value.trim();const pin=document.getElementById('login-pin').value.trim();if(!type||!pin){document.getElementById('login-err').textContent='Name und PIN eingeben.';return;}if(!db){bootDemoMode(name);return;}const{data,error}=await db.from('players').select('*').ilike('name',name).eq('pin',pin).single();if(error||!data){document.getElementById('login-err').textContent='Name oder PIN falsch.';return;}currentUser=data;isAdmin=false;bootApp();}
-async function doAdminLogin(){const pw=document.getElementById('admin-pw').value;if(pw!==ADMIN_PASSWORD){document.getElementById('admin-login-err').textContent='Falsches Passwort.';return;}isAdmin=true;currentUser={id:'admin',name:'Admin',funname:''};bootApp();}
-function bootDemoMode(name){currentUser={id:'demo', name,funname:'Orakel'};isAdmin=false;bootApp();}
-function logout(){currentUser=null;isAdmin=false;document.getElementById('app').style.display='none';document.getElementById('login-overlay').style.display='flex';document.getElementById('login-name').value='';document.getElementById('login-pin').value='';tabLoaded={};}
-async function bootApp(){document.getElementById('login-overlay').style.display='none';document.getElementById('admin-login-overlay').style.display='none';document.getElementById('app').style.display='block';document.getElementById('header-user').textContent=currentUser.name+(isAdmin?' (Admin)':'');if(isAdmin)document.getElementById('admin-tab').style.display='';await loadPlayers();await detectCurrentSpieltag();switchTab('uebersicht');}
-async function loadPlayers(){if(!db){allPlayers=[{id:'demo', name:'Demo', pin:'0000'}];return;}const{data}=await db.from('players').select('*').order('name');allPlayers=data||[];}
-async function fetchMatches(s){if(allMatches[s])return allMatches[s];try{const r=await fetch(`https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${s}`);allMatches[s]=await r.json();return allMatches[s];}catch(e){return[];}}
-async function detectCurrentSpieltag(){try{const r=await fetch(`https://api.openligadb.de/getcurrentgroup/${LIGA}`);const d=await r.json();currentSpieltag=d.groupOrderID||1;}catch(e){currentSpieltag=1;}}
-function getMatchScore(m,s){if(allScores[s]&&allScores[s][m.matchID])return allScores[s][m.matchID];if(m.matchIsFinished&&m.matchResults&&m.matchResults.length){const f=m.matchResults.find(r=>r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];return{home:f.pointsTeam1,away:f.pointsTeam2};}return null;}
-function getTendency(h,a){return h>a?'H':a>h?'A':'D';}
-function calcPoints(th,ta,rh,ra,j){ if(rh===null)return null;let p=0;if(th==rh&&ta==ra)p=PTS_CORRECT; else if(getTendency(th,ta)===getTendency(rh,ra))p=PTS_TEND;if(j**p>0)p+=PTS_JOKER,return p;}
-function switchTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));document.querySelectorAll('[id^="tab-"]').forEach(x=>x.style.display='none');document.getElementById('tab-'+A).style.display='';currentTab=t;const sh=['uebersicht','tippen'].includes(t);document.getElementById('spieltag-nav').style.display=sh?'flex':'none';if(sh)bw-buildSpieltagNav(t);if(!tabLoaded[t]){tabLoaded[t]=true;loadTab(t);}}
-function buildSpieltagNav(t){const c=document.getElementById('st-buttons');c.innerHTML='';for(let i=1;i<=maxSpieltag;i++){const b=document.createElement('button');b.className='st-btn'+(i===currentSpieltag?' active':'');b.textContent=i;b.onclick=()=>{currentSpieltag=i;tabLoaded[t]=false;document.querySelectorAll('.st-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');loadTab(t);};c.appendChild(b);}}
-async function loadTab(t){if(t==='uebersicht')await renderUebersicht();else if(t==='gesamt')await renderRanking('gesamt',1,34);else if(t==='erste-halbserie')await renderRanking('erste-halbserie',1,17);else if(t==='zweite-halbserie')await renderRanking('zweite-halbserie',18,34);else if(t==='tippen')await renderTippen();else if(t==='maumau')await renderMauMau();else if(t==='admin')renderAdmin();}
-asYnc function loadTipps(s){if(allTipps[s])return;if(!db){allTipps[s]={};return;}const{data}=await db.from('tipps').select('*').eq('spieltag',s);const m={};(data||[]).forEach(t=>{imf(!m[t.match_id])m[t.match_id]={};m[t.match_id][t.player_id]={home:t.tip_home,away:t.tip_away,joker:t.joker};});allTipps[s]=m;}
-asYnc function renderUebersicht(){const el=document.getElementById('tab-uebersicht');el.innerHTML='<div class="loading">Lade Spieltag '+currentSpieltag+'</div>';clost m=await fetchMatches(currentSpieltag);await loadTipps(currentSpieltag);const pp=await computeRankingPts(1,currentSpieltag);const r=rankPlayers(pp);const np=assignFunNames(r);if(!m.length){el.innerHTML='<div class="loading">Keine Daten</div>';return;}let html='<div class="overview-wrap"><table class="overview-table">';html+='<tr class="match-header"><th></th><th></th>';m.forEach(x=>{html+=`<th class="match-col-header">${x.team1.shortName}<br>${x.team2.shortName}</th>`;});html+='<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';html+='<tr class="match-header"><td></td><td></td>';m.forEach(x=>{const sc=getMatchScore(x,currentSpieltag);html+=`<td class="match-score">${sc?sc.home+':'+sc.away:'<span style="color:var(--muted)">-:-</span>'}</td>`;});html+='<td></td><td></td></tr>';np.forEach((p,idx)=>{const rc=idx==0?'rank-1':idx==1?'rank-2':idx==2?'rank-3':'';let st=0;html+=`<tr class="tipper-row"><td class="rank-cell"><span class="${rc}">${idx+1}</span></td><td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;m.forEach(x=>{const tip=(allTipps[currentSpieltag][x.matchID]||{})[p.id];const sc=getMatchScore(x,currentSpieltag);if(!tip){html+='<td class="tip-cell"><span class="tip-none">–</span></td>';return;}const pt=sc?calcPoints(tip.home,tip.away.sc.home,sc.away,tip.joker):null;if(pt!==null)st+=pt;let tc='tip-none';if(sc){if(tip.home==sc.home&&tip.away==sc.away) tc='tip-correct';else if(getTendency(tip.home,tip.away)===getTendency(sc.home,sc.away))tc='tip-tend';else tc='tip-wrong';}const jm=tip.joker?'<sup style="font-size:9px;color:var(--joker-hit)">J</sup>':'';let ph='';if(pt!==null){const pc=tip.joker?(pt>0?'pts-joker-hit':']-joker-miss'):'pts-normal';const lb=tip.joker&&pt===0?'J':(pt>0?'+'+pt:'0');ph=`<span class="${pc}" style="font-size:10px;display:block">${lb}</span>`;}html+=`<td class="tip-cell"><span class="tip-badge ${tc}">${tip.home}:${tip.away}${jm}</span>${ph}</td>`;});html+=`<td class="sum-cell">${st}</td><td class="total-cell">${pp[p.id]||0}</td></tr>`;});html+='</table></div>';el.innerHTML=html;}
-async function computeRankingPts(f,t){const p={};allPlayers.forEach(x=>{p[x.id]=0;});for(let s=f;s<=Math.min(t,currentSpieltag);s++){const m=await fetchMatches(s);await loadTipps(s);m.forEach(x=>{const sc=getMatchScore(x,s);if(!sc)return;allPlayers.forEach(y=>{const tip=(allTipps[s][x.matchID]||{})[y.id];if(!tip)return;const p2=calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker);if(p2)p[y.id]=(p[y.id]||0)+p2;});});}return p;}
-function rankPlayers(pt){return [...allPlayers].sort((a,b)=>(pt[b.id]||0)-(pt[a.id]||0)).map(x=>({...x,pts:pt[x.id]||0}));}
-async function renderRanking(id,f,t){const el=document.getElementById('tab-'+Id);el.innerHTML='<div class="loading">Berechne Tabelle</div>';const pt=await computeRankingPts(f,t);const r=rankPlayers(pt);const n=assignFunNames(r);let html='<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';html+='<tr class="match-header"><th style="width:36px"></th><th style="padding:8px 12px">Spieler</th><th style="text-align:right;padding:8px 12px">Punkte</th></tr>';n.forEach((p,i)=>{const rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';html+=`<tr class="tipper-row"><td class="rank-cell"><span class="${rc}">${i+1}</span></td><td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td><td class="total-cell" style="padding-right:20px">${p.pts}</td></tr>`;});html+='</table></div>';el.innerHTML=html;}
-async function renderTippen(){const el=document.getElementById('tab-tippen');if(isAdmin){el.innerHTML='<div>Admin kann nicht tippen.</div>';return;}const m=await fetchMatches(currentSpieltag);await loadTipps(currentSpieltag);let html=`<div class="tippen-wrap"><h2>Spieltag ${currentSpieltag} – Deine Tipps</h2><div class="info-box">Du tippst als <strong>${currentUser.name}</strong></div>`;m.forEach(x=>{const mt=(allTipps[currentSpieltag][x.matchID]||{})[currentUser.id]||{};const k=new Date(x.matchDateTimeUTC);const st=K<new Date();const d=st?'disabled':'';html+=`<div class="match-card"><div class="teams">${x.team1.teamName} vs ${x.team2.teamName}${st?'<span style="color:var(--danger);font-size:11px'> l\u00e4uft/beendet</span>':''}</div><div class="kickoff">${k.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div><div class="tip-inputs"><input type="number" min="0" max="20" id="th-${x.matchID}" value="${mt.home??''}" ${d} placeholder=""><span class="tip-sep">:</span><input type="number" min="0" max="20" id="ta-${x.matchID}" value="${mt.away??''}" ${d} placeholder=""><label class="joker-toggle ${mt.joker?'active':''}"><input type="checkbox" id="tj-${x.matchID}" ${mt.joker?'checked':''} ${d} onchange="onJokerChange(this)"> Joker</label></div></div>`;});html+=`<button class="save-btn" onclick="saveTipps(${JSON.stringify(m.map(x=>x.matchID))})">Tipps speichern</button><div id="save-msg"></div></div>`;el.innerHTML=html;}
-function onJokerChange(cb){if(!cb.checked){cb.closest('.joker-toggle').classList.remove('active');return;}document.querySelectorAll('[id^="tj-"]').forEach(x=>{if(x!==cb){x.checked=false;x.closest('.joker-toggle').classList.remove('active');}});cb.closest('.joker-toggle').classList.add('active');}
-async function saveTipps(ids){const msg=document.getElementById('save-msg');msg.className='msg msg-ok';msg.textContent='Speichere…';const rows=[];let jc=0;for(const mid of ids){const h=document.getElementById('th-'+mid);const a=document.getElementById('ta-'+mid);const j=document.getElementById('tj-'+mid);if(!h||h.disabled)continue;if(h.value===''||a.value==='')continue;if(j&&j.checked)jc++;rows.push({player_id:currentUser.id,spieltag:currentSpieltag,match_id:mid,tip_home:parseInt(h.value),tip_away:parseInt(a.value),joker:j?j.checked:false});}if(jc>1){msg.className='msg msg-err';msg.textContent='Nur 1 Joker pro Spieltag!';return;}if(!db){msg.textContent='Supabase nicht konfiguriert.';return;}const{error}=await db.from('tipps').upsert(rows,{onConflict:'player_id,spieltag,match_id'});if(error){msg.className='msg msg-err';msg.textContent='Fehler:'+error.message;return;}allTipps[currentSpieltag]=null;await loadTipps(currentSpieltag);msg.className='msg msg-ok';msg.textContent='✅ Tipps gespeichert!';}
-async function renderMauMau(){const el=document.getElementById('tab-maumau');if(!db){el.innerHTML='<div>Fehler</div>';return;}const{data}=await db.from('maumau').select('*').order('created_at',{ascending:false});maumauData=data||[];let html='<div class="maumau-wrap">';if(isAdmin){html+=`<div class="admin-section" style="margin-bottom:16px"><div class="form-row"><label>Spieler</label><select id="mm-player">${allPlayers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select><label>Betrag</label><input type="number" id="mm-amount" style="width:80px"><label>Beschreibung</label><input type="text" id="mm-desc" style="width:160px"><label>Typ</label><select id="mm-type"><option value="zahlt">zahlt</option><option value="kassiert">kassiert</option></select><button class="btn-primary" onclick="addMauMau()">+ Eintrag</button></div></div>`;}html+='<table class="maumau-table"><thead><tr><th>Spieler</th><th>Betrag</th><th>Typ</th><th>Beschreibung</th></tr></thead><tbody>';maumauData.forEach(r=>{const pl=allPlayers.find(p=>p.id===r.player_id);html+=`<tr><td>${pl?pl.name:r.player_id}</td><td>${r.amount} €</td><td><span class="badge badge-${r.type}">${r.type}</span></td><td>${r.description||''}</td></tr>`;});html+='</tbody></table></div>';el.innerHTML=html;}
-async function addMauMau(){const pid=document.getElementById('mm-player').value;const am=parseFloat(document.getElementById('mm-amount').value);const de=document.getElementById('mm-desc').value;const ty=document.getElementById('mm-type').value;if(!pid||isNaN(am))return;await db.from('maumau').insert({player_id:pid,amount:am,description:de,type:ty});tabLoaded['maumau']=false;loadTab('maumau');}
-function renderAdmin(){const el=document.getElementById('tab-admin');el.innerHTML=`<div class="admin-wrap"><div class="admin-section"><h3>Spieler verwalten</h3><div class="form-row"><label>Name</label><input type="text" id="new-player-name" placeholder="Name"><label>PIN</label><input type="text" id="new-player-pin" maxlength="6" style="width:80px"><button class="btn-primary" onclick="addPlayer()">+ Spieler</button></div><div id="player-list" class="player-list">${renderPlayerList()}</div></div><div class="admin-section"><h3>Ergebnisse eintragen (Spieltag ${currentSpieltag})</h3><div id="admin-scores-wrap"><div class="loading" style="padding:20px">Lade</div></div><button class="btn-primary" style="margin-top:12px" onclick="saveAdminScores()">Speichern</button><div id="scores-msg"></div></div><div class="admin-section"><h3>Einstellungen</h3><div class="form-row"><label>Spieltag</label><input type="number" id="admin-spieltag" value="${currentSpieltag}" min="1" max="34" style="width:70px"><button class="btn-primary" onclick="setCurrentSpieltag()">Setzen</button></div></div></div>`;loadAdminScores();}
-function renderPlayerList(){return allPlayers.map(p=>`<div class="player-item"><span class="pname">${p.name}</span><span class="ppin">PIN: ${p.pin}</span><button class="btn-danger" onclick="deletePlayer('${p.id}')">✕</button></div>`).join('');}
-async function addPlayer(){const n=document.getElementById('new-player-name').value.trim();const pi=document.getElementById('new-player-pin').value.trim();if(!n||pi.length<4){alert('Name und mind. 4-stellige PIN');return;}await db.from('players').insert({name:n,pin:pi});await loadPlayers();document.getElementById('player-list').innerHTML=renderPlayerList();document.getElementById('new-player-name').value='';document.getElementById('new-player-pin').value='';}
-asYnc function deletePlayer(id){if(!confirm('Löschen?'))return;await db.from('players').delete().eq('id',id);await loadPlayers();document.getElementById('player-list').innerHTML=renderPlayerList();}
-async function loadAdminScores(){const m=await fetchMatches(currentSpieltag);const w=document.getElementById('admin-scores-wrap');if(!w)return;w.innerHTML=m.map(x=>{const sc=allScores[currentSpieltag]&&allScores[currentSpieltag][x.matchID];const as=getMatchScore(x,currentSpieltag);return `<div class="score-item"><span class="match-label">${x.team1.shortName} vs ${x.team2.shortName}</span><input type="number" id="ah-${x.matchID}" placeholder="${as?as.home:'-'}" value="${sc?sc.home:''}"><span>:</span><input type="number" id="aa-${x.matchID}" placeholder="${as?as.away:'-'}" value="${sc?sc.away:''}"></div>`;}).join('');}
-asYnc function saveAdminScores(){const m=await fetchMatches(currentSpieltag);if(!allScores[currentSpieltag])allScores[currentSpieltag]={};const rows=[];m.forEach(x=>{const h=document.getElementById('ah-'+x.matchID);const a=document.getElementById('aa-'+x.matchID);if(h&&h.value!==''&&a&&a.value!==''){allScores[currentSpieltag][x.matchID]={home:parseInt(h.value),away: parseInt(a.value)};rows.push({spieltag:currentSpieltag,match_id:{.matchID,score_home:parseInt(h.value),score_away:parseInt(a.value)});}});if(db&&rows.length)await db.from('admin_scores').upsert(rows,{onConflict:'singltag,match_id'});const msg=document.getElementById('scores-msg');msg.className='msg msg-ok';msg.textContent='✅ Gespeichert!';}
-function setCurrentSpieltag(){currentSpieltag=parseInt(document.getElementById('admin-spieltag').value);tabLoaded={};switchTab('uebersicht');}
+
+// ── State ──
+let currentUser = null;
+let isAdmin = false;
+let currentTab = 'uebersicht';
+let currentSpieltag = 1;
+let maxSpieltag = 34;
+let allPlayers = [];
+let allTipps = {};       // { spieltag: { matchId: { playerId: {home,away,joker} } } }
+let allMatches = {};     // { spieltag: [{...OpenLigaDB match}] }
+let allScores = {};      // { spieltag: { matchId: {home,away} } } – admin overrides
+let maumauData = [];
+let tabLoaded = {};
+
+// ── Fun name assignment ──
+function assignFunNames(players) {
+  const n = players.length;
+  if (n === 0) return players;
+  const result = [...players];
+  result[0].funname = 'Prophet';
+  if (n > 1) result[n-1].funname = 'Ehren-Laie';
+  if (n > 2) {
+    const midSlots = n - 2;
+    for (let i = 1; i < n-1; i++) {
+      const idx = Math.floor((i-1) / midSlots * FUN_NAMES_MIDDLE.length);
+      result[i].funname = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length-1)];
+    }
+  }
+  return result;
+}
+
+// ── Login ──
+function showAdminLogin() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('admin-login-overlay').style.display = 'flex';
+}
+function showPlayerLogin() {
+  document.getElementById('admin-login-overlay').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+}
+
+async function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pin = document.getElementById('login-pin').value.trim();
+  if (!name || !pin) { document.getElementById('login-err').textContent = 'Name und PIN eingeben.'; return; }
+  if (!db) { bootDemoMode(name); return; }
+  const { data, error } = await db.from('players').select('*').ilike('name', name).eq('pin', pin).single();
+  if (error || !data) { document.getElementById('login-err').textContent = 'Name oder PIN falsch.'; return; }
+  currentUser = data;
+  isAdmin = false;
+  bootApp();
+}
+
+async function doAdminLogin() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw !== ADMIN_PASSWORD) { document.getElementById('admin-login-err').textContent = 'Falsches Passwort.'; return; }
+  isAdmin = true;
+  currentUser = { id: 'admin', name: 'Admin', funname: '' };
+  bootApp();
+}
+
+function bootDemoMode(name) {
+  currentUser = { id: 'demo', name: name, funname: 'Orakel' };
+  isAdmin = false;
+  bootApp();
+}
+
+function logout() {
+  currentUser = null; isAdmin = false;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pin').value = '';
+  tabLoaded = {};
+}
+
+async function bootApp() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('admin-login-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('header-user').textContent = currentUser.name + (isAdmin ? ' (Admin)' : '');
+  if (isAdmin) document.getElementById('admin-tab').style.display = '';
+  await loadPlayers();
+  await detectCurrentSpieltag();
+  switchTab('uebersicht');
+}
+
+// ── Load players ──
+async function loadPlayers() {
+  if (!db) { allPlayers = [{id:'demo',name:'Demo',pin:'0000',total_pts:0}]; return; }
+  const { data } = await db.from('players').select('*').order('name');
+  allPlayers = data || [];
+}
+
+// ── OpenLigaDB ──
+async function fetchMatches(spieltag) {
+  if (allMatches[spieltag]) return allMatches[spieltag];
+  try {
+    const r = await fetch(`https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`);
+    const data = await r.json();
+    allMatches[spieltag] = data;
+    return data;
+  } catch(e) { return []; }
+}
+
+async function detectCurrentSpieltag() {
+  try {
+    const r = await fetch(`https://api.openligadb.de/getcurrentgroup/${LIGA}`);
+    const d = await r.json();
+    currentSpieltag = d.groupOrderID || 1;
+  } catch(e) { currentSpieltag = 1; }
+}
+
+// ── Score helper ──
+function getMatchScore(match, spieltag) {
+  // Admin override first
+  if (allScores[spieltag] && allScores[spieltag][match.matchID]) {
+    return allScores[spieltag][match.matchID];
+  }
+  if (match.matchIsFinished && match.matchResults && match.matchResults.length) {
+    const final = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length-1];
+    return { home: final.pointsTeam1, away: final.pointsTeam2 };
+  }
+  return null;
+}
+
+function getTendency(home, away) {
+  if (home > away) return 'H';
+  if (away > home) return 'A';
+  return 'D';
+}
+
+function calcPoints(tipHome, tipAway, realHome, realAway, joker) {
+  if (realHome === null || realHome === undefined) return null;
+  let pts = 0;
+  if (tipHome == realHome && tipAway == realAway) { pts = PTS_CORRECT; }
+  else if (getTendency(tipHome, tipAway) === getTendency(realHome, realAway)) { pts = PTS_TEND; }
+  if (joker && pts > 0) pts *= 2;
+  return pts;
+}
+
+// ── Tab switching ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = '';
+  currentTab = tab;
+  const showST = ['uebersicht','tippen'].includes(tab);
+  document.getElementById('spieltag-nav').style.display = showST ? 'flex' : 'none';
+  if (showST) buildSpieltagNav(tab);
+  if (!tabLoaded[tab]) { tabLoaded[tab] = true; loadTab(tab); }
+}
+
+function buildSpieltagNav(tab) {
+  const container = document.getElementById('st-buttons');
+  container.innerHTML = '';
+  for (let i = 1; i <= maxSpieltag; i++) {
+    const b = document.createElement('button');
+    b.className = 'st-btn' + (i === currentSpieltag ? ' active' : '');
+    b.textContent = i;
+    b.onclick = () => { currentSpieltag = i; tabLoaded[tab] = false; document.querySelectorAll('.st-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); loadTab(tab); };
+    container.appendChild(b);
+  }
+}
+
+async function loadTab(tab) {
+  if (tab === 'uebersicht') await renderUebersicht();
+  else if (tab === 'gesamt') await renderRanking('gesamt', 1, 34);
+  else if (tab === 'erste-halbserie') await renderRanking('erste-halbserie', 1, 17);
+  else if (tab === 'zweite-halbserie') await renderRanking('zweite-halbserie', 18, 34);
+  else if (tab === 'tippen') await renderTippen();
+  else if (tab === 'maumau') await renderMauMau();
+  else if (tab === 'admin') renderAdmin();
+}
+
+// ── Load tipps from DB ──
+async function loadTipps(spieltag) {
+  if (allTipps[spieltag]) return;
+  if (!db) { allTipps[spieltag] = {}; return; }
+  const { data } = await db.from('tipps').select('*').eq('spieltag', spieltag);
+  const map = {};
+  (data||[]).forEach(t => {
+    if (!map[t.match_id]) map[t.match_id] = {};
+    map[t.match_id][t.player_id] = { home: t.tip_home, away: t.tip_away, joker: t.joker };
+  });
+  allTipps[spieltag] = map;
+}
+
+// ── ÜBERSICHT ──
+async function renderUebersicht() {
+  const el = document.getElementById('tab-uebersicht');
+  el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
+  const matches = await fetchMatches(currentSpieltag);
+  await loadTipps(currentSpieltag);
+  // compute total pts for ranking
+  const playerPts = await computeRankingPts(1, currentSpieltag);
+  const ranked = rankPlayers(playerPts);
+  const namedPlayers = assignFunNames(ranked);
+
+  if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
+
+  let html = '<div class="overview-wrap"><table class="overview-table">';
+  // Header: team names
+  html += '<tr class="match-header"><th></th><th></th>';
+  matches.forEach(m => {
+    html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
+  });
+  html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
+
+  // Score row
+  html += '<tr class="match-header"><td></td><td></td>';
+  matches.forEach(m => {
+    const sc = getMatchScore(m, currentSpieltag);
+    html += `<td class="match-score">${sc ? sc.home + ':' + sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+  });
+  html += '<td></td><td></td></tr>';
+
+  // Tipper rows
+  namedPlayers.forEach((p, idx) => {
+    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
+    let stPts = 0;
+    html += `<tr class="tipper-row">
+      <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
+      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+    matches.forEach(m => {
+      const tip = (allTipps[currentSpieltag][m.matchID] || {})[p.id];
+      const sc = getMatchScore(m, currentSpieltag);
+      if (!tip) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
+      const pts = sc !== null ? calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker) : null;
+      if (pts !== null) stPts += pts;
+      let tipClass = 'tip-none';
+      if (sc) {
+        if (tip.home == sc.home && tip.away == sc.away) tipClass = 'tip-correct';
+        else if (getTendency(tip.home, tip.away) === getTendency(sc.home, sc.away)) tipClass = 'tip-tend';
+        else tipClass = 'tip-wrong';
+      }
+      const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
+      let ptsHtml = '';
+      if (pts !== null) {
+        const ptsClass = tip.joker ? (pts > 0 ? 'pts-joker-hit' : 'pts-joker-miss') : 'pts-normal';
+        const label = tip.joker && pts === 0 ? 'J' : (pts > 0 ? '+'+pts : '0');
+        ptsHtml = `<span class="${ptsClass}" style="font-size:10px;display:block">${label}</span>`;
+      }
+      html += `<td class="tip-cell"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+    });
+    const totalPts = playerPts[p.id] || 0;
+    html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
+  });
+
+  html += '</table></div>';
+  el.innerHTML = html;
+}
+
+// ── RANKING (Gesamt / Halbserien) ──
+async function computeRankingPts(fromST, toST) {
+  const pts = {};
+  allPlayers.forEach(p => { pts[p.id] = 0; });
+  for (let st = fromST; st <= Math.min(toST, currentSpieltag); st++) {
+    const matches = await fetchMatches(st);
+    await loadTipps(st);
+    matches.forEach(m => {
+      const sc = getMatchScore(m, st);
+      if (!sc) return;
+      allPlayers.forEach(p => {
+        const tip = (allTipps[st][m.matchID] || {})[p.id];
+        if (!tip) return;
+        const p2 = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
+        if (p2) pts[p.id] = (pts[p.id]||0) + p2;
+      });
+    });
+  }
+  return pts;
+}
+
+function rankPlayers(pts) {
+  return [...allPlayers].sort((a,b) => (pts[b.id]||0) - (pts[a.id]||0))
+    .map(p => ({ ...p, pts: pts[p.id]||0 }));
+}
+
+async function renderRanking(tabId, fromST, toST) {
+  const el = document.getElementById('tab-' + tabId);
+  el.innerHTML = '<div class="loading">Berechne Tabelle</div>';
+  const pts = await computeRankingPts(fromST, toST);
+  const ranked = rankPlayers(pts);
+  const named = assignFunNames(ranked);
+
+  let html = '<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';
+  html += '<tr class="match-header"><th style="width:36px"></th><th style="padding:8px 12px">Spieler</th><th style="text-align:right;padding:8px 12px">Punkte</th></tr>';
+  named.forEach((p, i) => {
+    const rc = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    html += `<tr class="tipper-row">
+      <td class="rank-cell"><span class="${rc}">${i+1}</span></td>
+      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
+      <td class="total-cell" style="padding-right:20px">${p.pts}</td>
+    </tr>`;
+  });
+  html += '</table></div>';
+  el.innerHTML = html;
+}
+
+// ── TIPPEN ──
+async function renderTippen() {
+  const el = document.getElementById('tab-tippen');
+  if (isAdmin) { el.innerHTML = '<div class="loading" style="font-size:16px">Admin kann nicht tippen.</div>'; return; }
+  el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
+  const matches = await fetchMatches(currentSpieltag);
+  await loadTipps(currentSpieltag);
+
+  let jokerUsed = false;
+  allPlayers.forEach(p => {
+    if (p.id !== currentUser.id) return;
+    matches.forEach(m => {
+      const t = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+      if (t && t.joker) jokerUsed = true;
+    });
+  });
+
+  let html = `<div class="tippen-wrap">
+    <h2>Spieltag ${currentSpieltag} – Deine Tipps</h2>
+    <div class="info-box">Du tippst als <strong>${currentUser.name}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
+
+  matches.forEach(m => {
+    const myTip = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
+    const kickoff = new Date(m.matchDateTimeUTC);
+    const started = kickoff < new Date();
+    const jChecked = myTip.joker ? 'checked' : '';
+    const disabled = started ? 'disabled' : '';
+    const startedNote = started ? '<span style="color:var(--danger);font-size:11px;margin-left:8px">Spiel läuft/beendet</span>' : '';
+
+    html += `<div class="match-card" id="card-${m.matchID}">
+      <div class="teams">${m.team1.teamName} <span style="color:var(--muted)">vs</span> ${m.team2.teamName}${startedNote}</div>
+      <div class="kickoff">${kickoff.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="tip-inputs">
+        <input type="number" min="0" max="20" id="th-${m.matchID}" value="${myTip.home??''}" ${disabled} placeholder="–" style="width:52px">
+        <span class="tip-sep">:</span>
+        <input type="number" min="0" max="20" id="ta-${m.matchID}" value="${myTip.away??''}" ${disabled} placeholder="–" style="width:52px">
+        <label class="joker-toggle ${myTip.joker?'active':''}">
+          <input type="checkbox" id="tj-${m.matchID}" ${jChecked} ${disabled} onchange="onJokerChange(this,'${m.matchID}')"> 🃏 Joker
+        </label>
+      </div>
+    </div>`;
+  });
+
+  html += `<button class="save-btn" onclick="saveTipps(${JSON.stringify(matches.map(m=>m.matchID))})">💾 Tipps speichern</button>
+    <div id="save-msg"></div>
+    <div class="joker-warning">⚠ Pro Spieltag nur 1 Joker erlaubt. Joker verdoppelt die geholten Punkte.</div>
+  </div>`;
+  el.innerHTML = html;
+}
+
+function onJokerChange(cb, matchID) {
+  if (!cb.checked) { cb.closest('.joker-toggle').classList.remove('active'); return; }
+  // Uncheck all others
+  document.querySelectorAll('[id^="tj-"]').forEach(x => { if (x !== cb) { x.checked = false; x.closest('.joker-toggle').classList.remove('active'); } });
+  cb.closest('.joker-toggle').classList.add('active');
+}
+
+async function saveTipps(matchIDs) {
+  const msg = document.getElementById('save-msg');
+  msg.className = 'msg msg-ok'; msg.textContent = 'Speichere…';
+  const rows = [];
+  let jokerCount = 0;
+  for (const mid of matchIDs) {
+    const h = document.getElementById('th-'+mid);
+    const a = document.getElementById('ta-'+mid);
+    const j = document.getElementById('tj-'+mid);
+    if (!h || h.disabled) continue;
+    if (h.value === '' || a.value === '') continue;
+    if (j && j.checked) jokerCount++;
+    rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: parseInt(h.value), tip_away: parseInt(a.value), joker: j ? j.checked : false });
+  }
+  if (jokerCount > 1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
+  if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
+  const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
+  if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+error.message; return; }
+  allTipps[currentSpieltag] = null; // invalidate cache
+  await loadTipps(currentSpieltag);
+  msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
+}
+
+// ── MAYMAY ──
+async function renderMauMau() {
+  const el = document.getElementById('tab-maumau');
+  if (!db) { el.innerHTML = '<div class="loading">Supabase nicht konfiguriert.</div>'; return; }
+  const { data } = await db.from('maumau').select('*').order('created_at', { ascending: false });
+  maumauData = data || [];
+
+  let html = '<div class="maumau-wrap">';
+  if (isAdmin) {
+    html += `<div class="admin-section" style="margin-bottom:16px">
+      <div class="form-row">
+        <label>Spieler</label>
+        <select id="mm-player">${allPlayers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+        <label>Betrag (MMK)</label>
+        <input type="number" id="mm-amount" placeholder="z.B. 5" style="width:80px">
+        <label>Beschreibung</label>
+        <input type="text" id="mm-desc" placeholder="Grund" style="width:160px">
+        <label>Typ</label>
+        <select id="mm-type"><option value="zahlt">zahlt</option><option value="kassiert">kassiert</option></select>
+        <button class="btn-primary" onclick="addMauMau()">+ Eintrag</button>
+      </div>
+    </div>`;
+  }
+
+  html += '<table class="maumau-table"><thead><tr><th>Spieler</th><th>Betrag</th><th>Typ</th><th>Beschreibung</th></tr></thead><tbody>';
+  maumauData.forEach(row => {
+    const player = allPlayers.find(p => p.id === row.player_id);
+    html += `<tr>
+      <td>${player ? player.name : row.player_id}</td>
+      <td style="font-family:'Barlow Condensed';font-weight:700">${row.amount} MMK</td>
+      <td><span class="badge badge-${row.type}">${row.type}</span></td>
+      <td style="color:var(--muted)">${row.description||''}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+async function addMauMau() {
+  const pid = document.getElementById('mm-player').value;
+  const amount = parseFloat(document.getElementById('mm-amount').value);
+  const desc = document.getElementById('mm-desc').value;
+  const type = document.getElementById('mm-type').value;
+  if (!pid || isNaN(amount)) return;
+  await db.from('maumau').insert({ player_id: pid, amount, description: desc, type });
+  tabLoaded['maumau'] = false;
+  loadTab('maumau');
+}
+
+// ── ADMIN ──
+function renderAdmin() {
+  const el = document.getElementById('tab-admin');
+  el.innerHTML = `<div class="admin-wrap">
+    <div class="admin-section">
+      <h3>👥 Spieler verwalten</h3>
+      <div class="form-row">
+        <label>Name</label><input type="text" id="new-player-name" placeholder="Vor- Nachname">
+        <label>PIN</label><input type="text" id="new-player-pin" placeholder="1234" maxlength="6" style="width:80px">
+        <button class="btn-primary" onclick="addPlayer()">+ Spieler hinzufügen</button>
+      </div>
+      <div id="player-list" class="player-list">${renderPlayerList()}</div>
+    </div>
+
+    <div class="admin-section">
+      <h3>📊 Ergebnisse eintragen (Spieltag ${currentSpieltag})</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Nur nötig wenn OpenLigaDB Fehler hat. Sonst automatisch.</p>
+      <div id="admin-scores-wrap"><div class="loading" style="padding:20px">Lade Paarungen</div></div>
+      <button class="btn-primary" style="margin-top:12px" onclick="saveAdminScores()">💾 Ergebnisse speichern</button>
+      <div id="scores-msg"></div>
+    </div>
+
+    <div class="admin-section">
+      <h3>⚙ Einstellungen</h3>
+      <div class="form-row">
+        <label>Aktueller Spieltag</label>
+        <input type="number" id="admin-spieltag" value="${currentSpieltag}" min="1" max="34" style="width:70px">
+        <button class="btn-primary" onclick="setCurrentSpieltag()">Setzen</button>
+      </div>
+    </div>
+  </div>`;
+  loadAdminScores();
+}
+
+function renderPlayerList() {
+  return allPlayers.map(p => `<div class="player-item">
+    <span class="pname">${p.name}</span>
+    <span class="ppin">PIN: ${p.pin}</span>
+    <button class="btn-danger" onclick="deletePlayer('${p.id}')">✕</button>
+  </div>`).join('');
+}
+
+async function addPlayer() {
+  const name = document.getElementById('new-player-name').value.trim();
+  const pin = document.getElementById('new-player-pin').value.trim();
+  if (!name || pin.length < 4) { alert('Name und mind. 4-stellige PIN eingeben.'); return; }
+  if (!db) { alert('Supabase nicht konfiguriert.'); return; }
+  await db.from('players').insert({ name, pin });
+  await loadPlayers();
+  document.getElementById('player-list').innerHTML = renderPlayerList();
+  document.getElementById('new-player-name').value = '';
+  document.getElementById('new-player-pin').value = '';
+}
+
+async function deletePlayer(id) {
+  if (!confirm('Spieler wirklich löschen?')) return;
+  await db.from('players').delete().eq('id', id);
+  await loadPlayers();
+  document.getElementById('player-list').innerHTML = renderPlayerList();
+}
+
+async function loadAdminScores() {
+  const matches = await fetchMatches(currentSpieltag);
+  const wrap = document.getElementById('admin-scores-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = matches.map(m => {
+    const sc = allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID];
+    const apiSc = getMatchScore(m, currentSpieltag);
+    return `<div class="score-item">
+      <span class="match-label">${m.team1.shortName} vs ${m.team2.shortName}</span>
+      <input type="number" id="ah-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.home:'-'}" value="${sc?sc.home:''}">
+      <span style="color:var(--muted)">:</span>
+      <input type="number" id="aa-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.away:'-'}" value="${sc?sc.away:''}">
+    </div>`;
+  }).join('');
+}
+
+async function saveAdminScores() {
+  const matches = await fetchMatches(currentSpieltag);
+  if (!allScores[currentSpieltag]) allScores[currentSpieltag] = {};
+  const rows = [];
+  matches.forEach(m => {
+    const h = document.getElementById('ah-'+m.matchID);
+    const a = document.getElementById('aa-'+m.matchID);
+    if (h && h.value !== '' && a && a.value !== '') {
+      allScores[currentSpieltag][m.matchID] = { home: parseInt(h.value), away: parseInt(a.value) };
+      rows.push({ spieltag: currentSpieltag, match_id: m.matchID, score_home: parseInt(h.value), score_away: parseInt(a.value) });
+    }
+  });
+  if (db && rows.length) await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
+  const msg = document.getElementById('scores-msg');
+  msg.className='msg msg-ok'; msg.textContent='✅ Ergebnisse gespeichert!';
+}
+
+function setCurrentSpieltag() {
+  currentSpieltag = parseInt(document.getElementById('admin-spieltag').value);
+  tabLoaded = {};
+  switchTab('uebersicht');
+}
 </script>
+
+<!--
+════════════════════════════════════════════════════════════════════════
+  SUPABASE SETUP – Führe diese SQL-Befehle in deinem Supabase-Projekt aus
+  (SQL Editor → New query → Paste → Run)
+════════════════════════════════════════════════════════════════════════
+
+-- Spieler-Tabelle
+CREATE TABLE players (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  pin TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tipps-Tabelle
+CREATE TABLE tipps (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  player_id UUID REFERENCES players(id) ON DELETE CASCADE,
+  spieltag INT NOT NULL,
+  match_id BIGINT NOT NULL,
+  tip_home INT NOT NULL,
+  tip_away INT NOT NULL,
+  joker BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(player_id, spieltag, match_id)
+);
+
+-- Admin-Ergebnisse (Override für OpenLigaDB)
+CREATE TABLE admin_scores (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  spieltag INT NOT NULL,
+  match_id BIGINT NOT NULL,
+  score_home INT NOT NULL,
+  score_away INT NOT NULL,
+  UNIQUE(spieltag, match_id)
+);
+
+-- MauMau Kopeken-Tabelle
+CREATE TABLE maumau (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  player_id UUID REFERENCES players(id) ON DELETE CASCADE,
+  amount DECIMAL(8,2) NOT NULL,
+  type TEXT NOT NULL,  -- 'zahlt' or 'kassiert'
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Row Level Security (RLS) – alle lesen, nur authentifiziert schreiben
+ALTER TABLE players ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tipps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_scores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE maumau ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public read players" ON players FOR SELECT USING (true);
+CREATE POLICY "public read tipps" ON tipps FOR SELECT USING (true);
+CREATE POLICY "public write tipps" ON tipps FOR ALL USING (true);
+CREATE POLICY "public read scores" ON admin_scores FOR SELECT USING (true);
+CREATE POLICY "public write scores" ON admin_scores FOR ALL USING (true);
+CREATE POLICY "public read maumau" ON maumau FOR SELECT USING (true);
+CREATE POLICY "public write maumau" ON maumau FOR ALL USING (true);
+CREATE POLICY "public write players" ON players FOR ALL USING (true);
+
+════════════════════════════════════════════════════════════════════════
+-->
 </body>
 </html>
