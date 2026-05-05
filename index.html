@@ -491,7 +491,12 @@ async function renderUebersicht() {
     matches.forEach(m => {
       const tip = (allTipps[currentSpieltag][m.matchID] || {})[p.id];
       const sc = getMatchScore(m, currentSpieltag);
-      if (!tip) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
+      const kickoff = new Date(m.matchDateTimeUTC);
+      const started = kickoff < new Date();
+      // Tip only visible if: own tip, OR match started/finished, OR admin
+      const isOwn = p.id === currentUser.id;
+      const visible = isOwn || started || isAdmin;
+      if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
       const pts = sc !== null ? calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker) : null;
       if (pts !== null) stPts += pts;
       let tipClass = 'tip-none';
