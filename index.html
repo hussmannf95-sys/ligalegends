@@ -758,16 +758,37 @@ async function loadAdminScores() {
   const matches = await fetchMatches(currentSpieltag);
   const wrap = document.getElementById('admin-scores-wrap');
   if (!wrap) return;
+  // load existing overrides from DB
+  if (db) {
+    const { data } = await db.from('admin_scores').select('*').eq('spieltag', currentSpieltag);
+    if (!allScores[currentSpieltag]) allScores[currentSpieltag] = {};
+    (data||[]).forEach(r => { allScores[currentSpieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
+  }
   wrap.innerHTML = matches.map(m => {
     const sc = allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID];
     const apiSc = getMatchScore(m, currentSpieltag);
+    const hasOverride = sc && (!apiSc || sc.home !== apiSc.home || sc.away !== apiSc.away);
     return `<div class="score-item">
       <span class="match-label">${m.team1.shortName} vs ${m.team2.shortName}</span>
       <input type="number" id="ah-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.home:'-'}" value="${sc?sc.home:''}">
       <span style="color:var(--muted)">:</span>
       <input type="number" id="aa-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.away:'-'}" value="${sc?sc.away:''}">
+      <button class="btn-danger" onclick="deleteAdminScore(${m.matchID})" title="Manuelles Ergebnis löschen" style="padding:4px 8px;font-size:11px">✕</button>
     </div>`;
   }).join('');
+}
+
+async function deleteAdminScore(matchID) {
+  if (!confirm('Manuelles Ergebnis löschen? Danach gilt wieder das API-Ergebnis.')) return;
+  if (db) await db.from('admin_scores').delete().eq('spieltag', currentSpieltag).eq('match_id', matchID);
+  if (allScores[currentSpieltag]) delete allScores[currentSpieltag][matchID];
+  // clear inputs
+  const h = document.getElementById('ah-'+matchID);
+  const a = document.getElementById('aa-'+matchID);
+  if (h) h.value = '';
+  if (a) a.value = '';
+  const msg = document.getElementById('scores-msg');
+  msg.className='msg msg-ok'; msg.textContent='✅ Manuelles Ergebnis gelöscht!';
 }
 
 async function saveAdminScores() {
