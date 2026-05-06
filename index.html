@@ -234,6 +234,50 @@ canvas#rankChart { display: block; width: 100%; max-width: 860px; height: 280px;
 .punkte-row:last-child { border-bottom: none; }
 .punkte-row .pts-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
   font-size: 16px; min-width: 28px; text-align: right; }
+/* ── KABINENTALK ── */
+:root { --kab: #3B82F6; --kab-green: #22C55E; }
+.kab-wrap { padding: 16px; max-width: 680px; }
+.kab-compose { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.kab-compose textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; padding: 10px 12px; resize: vertical; min-height: 72px; outline: none; }
+.kab-compose textarea:focus { border-color: var(--kab); }
+.kab-compose-footer { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.kab-emoji-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+.kab-emoji-btn:hover { background: var(--surface2); }
+.kab-emoji-picker { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.kab-emoji-picker button { background: none; border: none; font-size: 18px; cursor: pointer; padding: 3px; border-radius: 4px; }
+.kab-emoji-picker button:hover { background: var(--border); }
+.kab-send-btn { margin-left: auto; background: var(--kab); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
+.kab-send-btn:hover { opacity: .85; }
+.kab-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.kab-filter { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 5px 13px; border-radius: 99px; font-size: 12px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; letter-spacing: .3px; transition: all .12s; }
+.kab-filter:hover { border-color: var(--kab); color: var(--kab); }
+.kab-filter.active { background: var(--kab); border-color: var(--kab); color: #fff; }
+.kab-post { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; position: relative; }
+.kab-post.pinned { border-color: var(--kab); }
+.kab-post.admin-post { border-left: 3px solid var(--kab-green); }
+.kab-post-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.kab-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--kab); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+.kab-avatar.admin-av { background: var(--kab-green); }
+.kab-author { font-weight: 600; font-size: 13px; }
+.kab-time { font-size: 11px; color: var(--muted); margin-left: auto; }
+.kab-pin-badge { font-size: 10px; background: rgba(59,130,246,.15); color: var(--kab); border: 1px solid rgba(59,130,246,.3); border-radius: 4px; padding: 1px 6px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.kab-body { font-size: 13px; line-height: 1.55; color: var(--text); white-space: pre-wrap; word-break: break-word; margin-bottom: 10px; }
+.kab-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kab-action-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Barlow', sans-serif; transition: all .12s; display: flex; align-items: center; gap: 4px; }
+.kab-action-btn:hover { border-color: var(--kab); color: var(--kab); }
+.kab-action-btn.liked { border-color: var(--kab); color: var(--kab); background: rgba(59,130,246,.1); }
+.kab-reaction-bar { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.kab-reaction { background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; padding: 2px 9px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 3px; transition: all .12s; }
+.kab-reaction:hover, .kab-reaction.reacted { border-color: var(--kab); background: rgba(59,130,246,.1); }
+.kab-comments { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.kab-comment { display: flex; gap: 8px; margin-bottom: 8px; }
+.kab-comment-av { width: 24px; height: 24px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; color: var(--muted); flex-shrink: 0; }
+.kab-comment-body { background: var(--surface2); border-radius: 7px; padding: 6px 10px; font-size: 12px; flex: 1; }
+.kab-comment-author { font-weight: 600; font-size: 11px; color: var(--kab); margin-bottom: 2px; }
+.kab-comment-input { display: flex; gap: 6px; margin-top: 8px; }
+.kab-comment-input input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 12px; font-family: 'Barlow', sans-serif; outline: none; }
+.kab-comment-input input:focus { border-color: var(--kab); }
+.kab-comment-input button { background: var(--kab); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -314,6 +358,7 @@ const FUN_NAMES_MIDDLE = [
     <div class="tab" data-tab="saison" onclick="switchTab('saison')">2025/26 Rückserie</div>
     <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
     <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik</div>
+    <div class="tab" data-tab="kabinentalk" onclick="switchTab('kabinentalk')">💬 Kabinentalk <span id="kab-badge" style="display:none;background:#3B82F6;color:#fff;border-radius:99px;font-size:10px;padding:1px 6px;margin-left:4px;font-family:'Barlow',sans-serif;font-weight:700"></span></div>
     <div class="tab" data-tab="regeln" onclick="switchTab('regeln')">📋 Regeln</div>
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
@@ -330,6 +375,7 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-saison" style="display:none"><div class="loading">Lade Saisontabelle</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-statistik" style="display:none"><div class="loading">Lade Statistik</div></div>
+  <div id="tab-kabinentalk" style="display:none"><div class="loading">Lade Kabinentalk</div></div>
   <div id="tab-regeln" style="display:none"></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
@@ -357,6 +403,9 @@ let allScores     = {}; // { spieltag: { matchId: {home,away} } } – admin over
 let maumauData    = [];
 let tabLoaded     = {};
 let matchesExpanded = false; // Paarungen in Übersicht ein-/ausblenden
+let kabFilter = 'alle'; // aktiver Kabinentalk-Filter
+let kabPosts  = [];     // gecachte Posts
+let kabSeenCount = 0;   // für Notif-Badge
 
 // ── Fun name assignment ──
 function assignFunNames(players) {
@@ -571,6 +620,7 @@ async function loadTab(tab) {
   else if (tab === 'tippen')           await renderTippen();
   else if (tab === 'maumau')           await renderMauMau();
   else if (tab === 'statistik')        await renderStatistik();
+  else if (tab === 'kabinentalk')      await renderKabinentalk();
   else if (tab === 'regeln')           renderRegeln();
   else if (tab === 'admin')            renderAdmin();
 }
@@ -1436,6 +1486,234 @@ function renderPlayerDetail() {
 
   html += '</div>';
   wrap.innerHTML = html;
+}
+
+// ── KABINENTALK ──
+const KAB_EMOJIS = ['⚽','🏆','🎯','🔥','💪','👏','😅','🤣','😤','🙈','🎉','❤️','👍','👎','🃏'];
+
+function kabTimeAgo(dateStr) {
+  const d = new Date(dateStr), now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60)   return 'gerade eben';
+  if (diff < 3600) return Math.floor(diff/60) + ' Min';
+  if (diff < 86400) return Math.floor(diff/3600) + ' Std';
+  return Math.floor(diff/86400) + ' Tagen';
+}
+
+function kabInitials(name) {
+  return name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+}
+
+async function renderKabinentalk() {
+  const el = document.getElementById('tab-kabinentalk');
+  el.innerHTML = '<div class="loading">Lade Kabinentalk…</div>';
+  if (!db) { el.innerHTML = '<div class="loading">Supabase nicht verbunden.</div>'; return; }
+  await loadKabPosts();
+  renderKabUI();
+}
+
+async function loadKabPosts() {
+  const { data } = await db.from('kabinentalk')
+    .select('*, kabinentalk_comments(*)')
+    .order('pinned', { ascending: false })
+    .order('created_at', { ascending: false });
+  kabPosts = data || [];
+  // Badge: neue Posts seit letztem Besuch
+  const badge = document.getElementById('kab-badge');
+  if (badge && kabSeenCount < kabPosts.length) {
+    const unseen = kabPosts.length - kabSeenCount;
+    badge.textContent = unseen;
+    badge.style.display = 'inline';
+  } else if (badge) { badge.style.display = 'none'; }
+  kabSeenCount = kabPosts.length;
+}
+
+function renderKabUI() {
+  const el = document.getElementById('tab-kabinentalk');
+  const uid  = currentUser.id;
+  const uname = currentUser.name;
+
+  let filtered = kabPosts;
+  if (kabFilter === 'admin')   filtered = kabPosts.filter(p => p.author_id === 'admin');
+  if (kabFilter === 'gepinnt') filtered = kabPosts.filter(p => p.pinned);
+  if (kabFilter === 'meine')   filtered = kabPosts.filter(p => p.author_id === uid);
+
+  let html = '<div class="kab-wrap">';
+
+  // Compose
+  if (!isAdmin) {
+    html += `<div class="kab-compose">
+      <textarea id="kab-input" placeholder="Was gibt's Neues in der Kabine…"></textarea>
+      <div id="kab-emoji-tray" style="display:none" class="kab-emoji-picker">
+        ${KAB_EMOJIS.map(e=>`<button onclick="kabInsertEmoji('${e}')">${e}</button>`).join('')}
+      </div>
+      <div class="kab-compose-footer">
+        <button class="kab-emoji-btn" onclick="document.getElementById('kab-emoji-tray').style.display=document.getElementById('kab-emoji-tray').style.display==='none'?'flex':'none'" title="Emoji">😄</button>
+        <button class="kab-send-btn" onclick="kabPost()">Abschicken 💬</button>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="kab-compose">
+      <textarea id="kab-input" placeholder="Admin-Nachricht…"></textarea>
+      <div class="kab-compose-footer">
+        <button class="kab-send-btn" onclick="kabPost()">Als Admin posten 📣</button>
+      </div>
+    </div>`;
+  }
+
+  // Filter-Leiste
+  const filters = [['alle','Alle'],['admin','Admin'],['gepinnt','📌 Gepinnt'],['meine','Meine']];
+  html += '<div class="kab-filters">';
+  filters.forEach(([k,l]) => {
+    html += `<button class="kab-filter${kabFilter===k?' active':''}" onclick="kabSetFilter('${k}')">${l}</button>`;
+  });
+  html += '</div>';
+
+  // Posts
+  if (!filtered.length) {
+    html += '<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Noch keine Beiträge.</div>';
+  }
+
+  filtered.forEach(post => {
+    const isAdminPost = post.author_id === 'admin';
+    const likes = Array.isArray(post.likes) ? post.likes : [];
+    const liked = likes.includes(uid);
+    const reactions = post.reactions || {};
+    const comments  = post.kabinentalk_comments || [];
+    const avClass   = isAdminPost ? 'admin-av' : '';
+    const postClass = (post.pinned ? ' pinned' : '') + (isAdminPost ? ' admin-post' : '');
+
+    html += `<div class="kab-post${postClass}" id="kab-post-${post.id}">
+      <div class="kab-post-header">
+        <div class="kab-avatar ${avClass}">${kabInitials(post.author_name)}</div>
+        <div>
+          <div class="kab-author">${post.author_name}${isAdminPost?` <span style="color:var(--kab-green);font-size:10px;font-family:'Barlow Condensed';font-weight:700">ADMIN</span>`:''}</div>
+        </div>
+        ${post.pinned ? '<span class="kab-pin-badge">📌 GEPINNT</span>' : ''}
+        <span class="kab-time">vor ${kabTimeAgo(post.created_at)}</span>
+      </div>
+      <div class="kab-body">${post.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+
+    // Reaktionen
+    if (Object.keys(reactions).length) {
+      html += '<div class="kab-reaction-bar">';
+      Object.entries(reactions).forEach(([emoji, users]) => {
+        const reacted = Array.isArray(users) && users.includes(uid);
+        html += `<span class="kab-reaction${reacted?' reacted':''}" onclick="kabReact('${post.id}','${emoji}')">${emoji} ${users.length}</span>`;
+      });
+      html += '</div>';
+    }
+
+    // Aktionen
+    html += '<div class="kab-actions">';
+    html += `<button class="kab-action-btn${liked?' liked':''}" onclick="kabLike('${post.id}')">👍 ${likes.length || ''}</button>`;
+    // Emoji-Reaktionen
+    KAB_EMOJIS.slice(0,6).forEach(e => {
+      html += `<button class="kab-action-btn" onclick="kabReact('${post.id}','${e}')" style="padding:4px 6px;font-size:14px">${e}</button>`;
+    });
+    if (isAdmin) {
+      const pinLabel = post.pinned ? '📌 Lösen' : '📌 Anpinnen';
+      html += `<button class="kab-action-btn" onclick="kabPin('${post.id}',${!post.pinned})">${pinLabel}</button>`;
+      html += `<button class="kab-action-btn" onclick="kabDelete('${post.id}')" style="color:var(--danger);border-color:var(--danger)">🗑 Löschen</button>`;
+    }
+    html += '</div>';
+
+    // Kommentare
+    html += '<div class="kab-comments">';
+    comments.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(c => {
+      html += `<div class="kab-comment">
+        <div class="kab-comment-av">${kabInitials(c.author_name)}</div>
+        <div class="kab-comment-body">
+          <div class="kab-comment-author">${c.author_name} <span style="color:var(--muted);font-weight:400">· vor ${kabTimeAgo(c.created_at)}</span></div>
+          <div>${c.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        </div>
+      </div>`;
+    });
+    html += `<div class="kab-comment-input">
+      <input type="text" id="kab-ci-${post.id}" placeholder="Kommentar…" onkeydown="if(event.key==='Enter')kabComment('${post.id}')">
+      <button onclick="kabComment('${post.id}')">↩</button>
+    </div>`;
+    html += '</div>'; // kab-comments
+    html += '</div>'; // kab-post
+  });
+
+  html += '</div>'; // kab-wrap
+  el.innerHTML = html;
+}
+
+function kabInsertEmoji(e) {
+  const ta = document.getElementById('kab-input');
+  if (!ta) return;
+  const s = ta.selectionStart, end = ta.selectionEnd;
+  ta.value = ta.value.slice(0,s) + e + ta.value.slice(end);
+  ta.selectionStart = ta.selectionEnd = s + e.length;
+  ta.focus();
+}
+
+function kabSetFilter(f) {
+  kabFilter = f;
+  renderKabUI();
+}
+
+async function kabPost() {
+  const ta = document.getElementById('kab-input');
+  const body = ta?.value.trim();
+  if (!body) return;
+  const { error } = await db.from('kabinentalk').insert({
+    author_id: currentUser.id, author_name: currentUser.name, body
+  });
+  if (!error) { ta.value = ''; await loadKabPosts(); renderKabUI(); }
+  else alert('Fehler: ' + error.message);
+}
+
+async function kabLike(postId) {
+  const post = kabPosts.find(p => p.id === postId);
+  if (!post) return;
+  const likes = Array.isArray(post.likes) ? [...post.likes] : [];
+  const uid = currentUser.id;
+  const idx = likes.indexOf(uid);
+  if (idx >= 0) likes.splice(idx, 1); else likes.push(uid);
+  await db.from('kabinentalk').update({ likes }).eq('id', postId);
+  post.likes = likes;
+  renderKabUI();
+}
+
+async function kabReact(postId, emoji) {
+  const post = kabPosts.find(p => p.id === postId);
+  if (!post) return;
+  const reactions = { ...(post.reactions || {}) };
+  const uid = currentUser.id;
+  if (!reactions[emoji]) reactions[emoji] = [];
+  const arr = [...reactions[emoji]];
+  const idx = arr.indexOf(uid);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(uid);
+  if (arr.length === 0) delete reactions[emoji]; else reactions[emoji] = arr;
+  await db.from('kabinentalk').update({ reactions }).eq('id', postId);
+  post.reactions = reactions;
+  renderKabUI();
+}
+
+async function kabPin(postId, pinned) {
+  await db.from('kabinentalk').update({ pinned }).eq('id', postId);
+  await loadKabPosts(); renderKabUI();
+}
+
+async function kabDelete(postId) {
+  if (!confirm('Beitrag wirklich löschen?')) return;
+  await db.from('kabinentalk').delete().eq('id', postId);
+  kabPosts = kabPosts.filter(p => p.id !== postId);
+  renderKabUI();
+}
+
+async function kabComment(postId) {
+  const inp = document.getElementById('kab-ci-' + postId);
+  const body = inp?.value.trim();
+  if (!body) return;
+  const { error } = await db.from('kabinentalk_comments').insert({
+    post_id: postId, author_id: currentUser.id, author_name: currentUser.name, body
+  });
+  if (!error) { inp.value = ''; await loadKabPosts(); renderKabUI(); }
+  else alert('Fehler: ' + error.message);
 }
 
 // ── REGELN ──
