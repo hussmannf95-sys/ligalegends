@@ -394,14 +394,20 @@ async function loadAllAdminScores() {
 
 // ── OpenLigaDB ──
 async function fetchMatches(spieltag) {
-  if (allMatches[spieltag] !== undefined) return allMatches[spieltag]; // strict: [] ist gültiger Cache
+  if (allMatches[spieltag] !== undefined) return allMatches[spieltag];
   try {
-    const r = await fetch(`https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000); // 8s Timeout
+    const r = await fetch(
+      `https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`,
+      { signal: ctrl.signal }
+    );
+    clearTimeout(timer);
     const data = await r.json();
-    allMatches[spieltag] = Array.isArray(data) ? data : []; // nie non-Array speichern
+    allMatches[spieltag] = Array.isArray(data) ? data : [];
     return allMatches[spieltag];
   } catch(e) {
-    allMatches[spieltag] = []; // auch Fehler cachen, kein Retry
+    allMatches[spieltag] = [];
     return [];
   }
 }
@@ -518,7 +524,7 @@ async function renderUebersicht() {
   await loadTipps(currentSpieltag);
 
   // compute total pts for ranking
-  const playerPts = await computeRankingPts(1, currentSpieltag);
+  const playerPts = computeRankingPts(1, currentSpieltag);
   const ranked    = rankPlayers(playerPts);
   const namedPlayers = assignFunNames(ranked);
 
@@ -617,30 +623,40 @@ async function renderUebersicht() {
 }
 
 // ── RANKING (Gesamt / Halbserien) ──
-async function computeRankingPts(fromST, toST) {
+// Kein OpenLigaDB-Request: iteriert über bulk-geladene allTipps.
+// Score-Quelle: allScores (admin_scores, bulk) → allMatches (gecacht, falls vorhanden).
+function computeRankingPts(fromST, toST) {
   const pts = {};
   allPlayers.forEach(p => { pts[p.id] = 0; });
   const limit = Math.min(toST, currentSpieltag);
-  const spieltags = [];
-  for (let st = fromST; st <= limit; st++) spieltags.push(st);
-  // Fetch all match data in parallel (OpenLigaDB)
-  await Promise.all(spieltags.map(st => fetchMatches(st)));
-  // tipps + adminScores already bulk-loaded at boot; ensure cache filled
-  await Promise.all(spieltags.map(st => Promise.all([loadTipps(st), ensureAdminScores(st)])));
-  spieltags.forEach(st => {
-    const matches = Array.isArray(allMatches[st]) ? allMatches[st] : [];
-    matches.forEach(m => {
-      const sc = getMatchScore(m, st);
-      if (!sc) return;
+
+  for (let st = fromST; st <= limit; st++) {
+    const tippsForST = allTipps[st] || {};
+    // Alle Match-IDs dieses Spieltags aus den Tipps ableiten
+    Object.keys(tippsForST).forEach(matchIdStr => {
+      const matchId = +matchIdStr;
+
+      // Score: erst admin_scores (lokal, sicher), dann gecachte API-Daten
+      let sc = (allScores[st] && allScores[st][matchId]) ? allScores[st][matchId] : null;
+      if (!sc && Array.isArray(allMatches[st])) {
+        const m = allMatches[st].find(x => x.matchID === matchId);
+        if (m && m.matchIsFinished && m.matchResults && m.matchResults.length) {
+          const fin = m.matchResults.find(r => r.resultTypeID === 2)
+                   || m.matchResults[m.matchResults.length - 1];
+          sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+        }
+      }
+      if (!sc) return; // kein Ergebnis → überspringen
+
       allPlayers.forEach(p => {
-        const tip = (allTipps[st] && allTipps[st][m.matchID] && allTipps[st][m.matchID][p.id]);
+        const tip = tippsForST[matchId] && tippsForST[matchId][p.id];
         if (!tip) return;
         const p2 = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
-        if (p2) pts[p.id] = (pts[p.id]||0) + p2;
+        if (p2) pts[p.id] = (pts[p.id] || 0) + p2;
       });
     });
-  });
-  return pts;
+  }
+  return pts; // synchron – kein await nötig
 }
 function rankPlayers(pts) {
   return [...allPlayers].sort((a,b) => (pts[b.id]||0) - (pts[a.id]||0))
@@ -650,7 +666,7 @@ async function renderRanking(tabId, fromST, toST) {
   const el = document.getElementById('tab-' + tabId);
   el.innerHTML = '<div class="loading">Berechne Tabelle</div>';
   try {
-  const pts    = await computeRankingPts(fromST, toST);
+  const pts    = computeRankingPts(fromST, toST);
   const ranked = rankPlayers(pts);
   const named  = assignFunNames(ranked);
   let html = '<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';
