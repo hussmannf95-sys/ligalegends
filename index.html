@@ -166,6 +166,31 @@ header {
 }
 .toggle-matches-btn:hover { border-color: var(--accent); color: var(--accent); }
 .toggle-matches-btn.expanded { border-color: var(--accent); color: var(--accent); background: rgba(0,196,160,.08); }
+/* ── SAISONTABELLE ── */
+.saison-wrap { padding: 16px; overflow-x: auto; }
+.saison-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.saison-table th { background: var(--surface2); padding: 7px 6px; text-align: center;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: .4px;
+  color: var(--muted); border-bottom: 2px solid var(--border); white-space: nowrap; }
+.saison-table th.name-th { text-align: left; padding-left: 10px; min-width: 110px; }
+.saison-table td { padding: 6px 4px; border-bottom: 1px solid var(--border); text-align: center;
+  font-family: 'Barlow', sans-serif; font-size: 12px; }
+.saison-table tr.winner td { background: rgba(0,196,160,.05); }
+.saison-table tr.loser  td { background: rgba(232,65,65,.04); }
+.saison-table tr:hover td { filter: brightness(1.08); }
+.s-rank  { width: 26px; font-family:'Barlow Condensed';font-weight:700;font-size:14px;text-align:center; }
+.s-name  { text-align:left; padding-left:10px; }
+.s-name .realname { font-weight:600; font-size:12px; }
+.s-name .funname  { font-size:9px; color:var(--muted); }
+.s-sum   { font-family:'Barlow',sans-serif; font-weight:600; font-size:13px;
+           color:var(--accent); padding-right:6px; border-left:1px solid var(--border); }
+/* Punktfarben */
+.p6 { color:#f59e0b; font-weight:700; }   /* 6 – gold   (exakt + Joker) */
+.p4 { color:#10b981; font-weight:600; }   /* 4 – grün   (Abstand + Joker) */
+.p3 { color:#00c4a0; font-weight:600; }   /* 3 – teal   (exakt) */
+.p2 { color:#60a5fa; font-weight:500; }   /* 2 – blau   (Torabstand) */
+.p1 { color:#9ca3af; font-weight:400; }   /* 1 – grau   (Tendenz) */
+.p0 { color:#374151; font-weight:400; }   /* 0 – dunkel (falsch/kein Tipp) */
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -189,6 +214,9 @@ const ADMIN_PASSWORD = 'liga1992admin';
 // Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA   = 'bl1';
 const SAISON = '2025'; // 2025 = Saison 2025/26
+const RUECKSERIE_FROM = 18; // erster Spieltag der Rückserie
+const RUECKSERIE_TO   = 34; // letzter Spieltag der Rückserie
+const SAISON_LABEL    = '2025/26 Rückserie';
 
 // Points system
 const PTS_CORRECT = 3;  // exaktes Ergebnis
@@ -240,9 +268,7 @@ const FUN_NAMES_MIDDLE = [
 
   <div class="tabs">
     <div class="tab active" data-tab="uebersicht" onclick="switchTab('uebersicht')">Übersicht</div>
-    <div class="tab" data-tab="gesamt" onclick="switchTab('gesamt')">Gesamt</div>
-    <div class="tab" data-tab="erste-halbserie" onclick="switchTab('erste-halbserie')">1. Halbserie</div>
-    <div class="tab" data-tab="zweite-halbserie" onclick="switchTab('zweite-halbserie')">2. Halbserie</div>
+    <div class="tab" data-tab="saison" onclick="switchTab('saison')">2025/26 Rückserie</div>
     <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
@@ -256,9 +282,7 @@ const FUN_NAMES_MIDDLE = [
 
   <!-- Tab Contents -->
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
-  <div id="tab-gesamt" style="display:none"><div class="loading">Lade Tabelle</div></div>
-  <div id="tab-erste-halbserie" style="display:none"><div class="loading">Lade 1. Halbserie</div></div>
-  <div id="tab-zweite-halbserie" style="display:none"><div class="loading">Lade 2. Halbserie</div></div>
+  <div id="tab-saison" style="display:none"><div class="loading">Lade Saisontabelle</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
@@ -292,15 +316,27 @@ function assignFunNames(players) {
   const n = players.length;
   if (n === 0) return players;
   const result = [...players];
-  result[0].funname = 'GOAT';
-  if (n > 1) result[n-1].funname = 'Ehren-Laie';
-  if (n > 2) {
-    const midSlots = n - 2;
-    for (let i = 1; i < n-1; i++) {
-      const idx = Math.floor((i-1) / midSlots * FUN_NAMES_MIDDLE.length);
-      result[i].funname = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length-1)];
-    }
+  // Shared 1st: alle mit gleicher Punktzahl wie Platz 1 → GOAT
+  const topPts = result[0].pts;
+  const botPts = result[n-1].pts;
+  let firstNonGoat = 0;
+  let firstEhren   = n - 1;
+  result.forEach((p, i) => {
+    if (p.pts === topPts) { p.funname = 'GOAT'; firstNonGoat = i + 1; }
+  });
+  // Shared last: alle mit gleicher Punktzahl wie letzter → Ehren-Laie
+  // (aber nur wenn nicht bereits GOAT)
+  for (let i = n - 1; i >= firstNonGoat; i--) {
+    if (result[i].pts === botPts) { result[i].funname = 'Ehren-Laie'; firstEhren = i; }
+    else break;
   }
+  // Mittelfeld
+  const midPlayers = result.slice(firstNonGoat, firstEhren);
+  const midSlots   = midPlayers.length;
+  midPlayers.forEach((p, i) => {
+    const idx = midSlots <= 1 ? 0 : Math.floor(i / (midSlots - 1) * (FUN_NAMES_MIDDLE.length - 1));
+    p.funname = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length - 1)];
+  });
   return result;
 }
 
@@ -484,9 +520,7 @@ function buildSpieltagNav(tab) {
 }
 async function loadTab(tab) {
   if      (tab === 'uebersicht')       await renderUebersicht();
-  else if (tab === 'gesamt')           await renderRanking('gesamt', 1, 34);
-  else if (tab === 'erste-halbserie')  await renderRanking('erste-halbserie', 1, 17);
-  else if (tab === 'zweite-halbserie') await renderRanking('zweite-halbserie', 18, 34);
+  else if (tab === 'saison')           await renderSaison();
   else if (tab === 'tippen')           await renderTippen();
   else if (tab === 'maumau')           await renderMauMau();
   else if (tab === 'admin')            renderAdmin();
@@ -684,6 +718,104 @@ async function renderRanking(tabId, fromST, toST) {
   } catch(e) {
     el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden.<br><small>' + e.message + '</small></div>';
     console.error('renderRanking error:', e);
+  }
+}
+
+// ── SAISONTABELLE ──
+async function renderSaison() {
+  const el = document.getElementById('tab-saison');
+  el.innerHTML = '<div class="loading">Lade Saisontabelle…</div>';
+  try {
+    const from  = RUECKSERIE_FROM;
+    const to    = Math.min(RUECKSERIE_TO, currentSpieltag);
+    const stArr = [];
+    for (let s = from; s <= to; s++) stArr.push(s);
+
+    // Punkte pro Spieler pro Spieltag (nutzt nur bulk-gecachte Daten)
+    // playerPtsPerST[playerId][st] = punkte
+    const playerPtsPerST = {};
+    allPlayers.forEach(p => { playerPtsPerST[p.id] = {}; });
+
+    stArr.forEach(st => {
+      const tippsForST = allTipps[st] || {};
+      Object.keys(tippsForST).forEach(midStr => {
+        const matchId = +midStr;
+        let sc = (allScores[st]?.[matchId]) || null;
+        if (!sc && Array.isArray(allMatches[st])) {
+          const m = allMatches[st].find(x => x.matchID === matchId);
+          if (m?.matchIsFinished && m.matchResults?.length) {
+            const fin = m.matchResults.find(r => r.resultTypeID === 2)
+                     || m.matchResults[m.matchResults.length - 1];
+            sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+          }
+        }
+        if (!sc) return;
+        allPlayers.forEach(p => {
+          const tip = tippsForST[matchId]?.[p.id];
+          if (!tip) return;
+          const pts = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
+          if (pts) playerPtsPerST[p.id][st] = (playerPtsPerST[p.id][st] || 0) + pts;
+        });
+      });
+    });
+
+    // Gesamtpunkte + Sortierung
+    const totals = {};
+    allPlayers.forEach(p => {
+      totals[p.id] = stArr.reduce((s, st) => s + (playerPtsPerST[p.id][st] || 0), 0);
+    });
+    const ranked = [...allPlayers]
+      .sort((a, b) => totals[b.id] - totals[a.id])
+      .map(p => ({ ...p, pts: totals[p.id] }));
+    const named  = assignFunNames(ranked);
+
+    const topPts = named[0]?.pts ?? 0;
+    const botPts = named[named.length-1]?.pts ?? 0;
+    const half   = Math.ceil(named.length / 2);
+
+    // Punktfarbe
+    function ptsCls(pts) {
+      if (pts === 6) return 'p6';
+      if (pts === 4) return 'p4';
+      if (pts === 3) return 'p3';
+      if (pts === 2) return 'p2';
+      if (pts === 1) return 'p1';
+      return 'p0';
+    }
+
+    // Header
+    let html = '<div class="saison-wrap"><table class="saison-table">';
+    html += '<thead><tr>';
+    html += '<th style="width:26px"></th>';
+    html += '<th class="name-th">Spieler</th>';
+    stArr.forEach(st => { html += `<th>ST${st}</th>`; });
+    html += '<th style="border-left:1px solid var(--border)">∑</th>';
+    html += '</tr></thead><tbody>';
+
+    // Rows
+    named.forEach((p, i) => {
+      const isWinner = i < half;
+      const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+      const rowClass  = isWinner ? 'winner' : 'loser';
+      html += `<tr class="${rowClass}">`;
+      html += `<td class="s-rank"><span class="${rankClass}">${i+1}</span></td>`;
+      html += `<td class="s-name"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+      stArr.forEach(st => {
+        const pts = playerPtsPerST[p.id][st];
+        if (pts === undefined) {
+          html += `<td class="p0">–</td>`;
+        } else {
+          html += `<td class="${ptsCls(pts)}">${pts}</td>`;
+        }
+      });
+      html += `<td class="s-sum">${totals[p.id]}</td>`;
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="loading" style="color:var(--danger)">Fehler: ${e.message}</div>`;
+    console.error('renderSaison error:', e);
   }
 }
 
@@ -922,9 +1054,7 @@ async function saveAdminScores() {
     await ensureAdminScores(currentSpieltag);
     // Invalidate overview cache so it re-renders with new scores
     tabLoaded['uebersicht'] = false;
-    tabLoaded['gesamt'] = false;
-    tabLoaded['erste-halbserie'] = false;
-    tabLoaded['zweite-halbserie'] = false;
+    tabLoaded['saison'] = false;
   }
   const msg = document.getElementById('scores-msg');
   msg.className='msg msg-ok'; msg.textContent='✅ Ergebnisse gespeichert!';
