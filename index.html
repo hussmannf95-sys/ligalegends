@@ -351,6 +351,7 @@ async function bootApp() {
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
   await detectCurrentSpieltag();
+  await Promise.all([loadAllTipps(), loadAllAdminScores()]); // single bulk load
   switchTab('uebersicht');
 }
 
@@ -359,6 +360,35 @@ async function loadPlayers() {
   if (!db) { allPlayers = [{id:'demo',name:'Demo',pin:'0000',total_pts:0}]; return; }
   const { data } = await db.from('players').select('*').order('name');
   allPlayers = data || [];
+}
+
+// ── Bulk-load ALL tipps in one query (instead of per-spieltag) ──
+async function loadAllTipps() {
+  if (!db) return;
+  try {
+    const { data } = await db.from('tipps').select('*');
+    (data||[]).forEach(t => {
+      if (!allTipps[t.spieltag]) allTipps[t.spieltag] = {};
+      if (!allTipps[t.spieltag][t.match_id]) allTipps[t.spieltag][t.match_id] = {};
+      allTipps[t.spieltag][t.match_id][t.player_id] = { home: t.tip_home, away: t.tip_away, joker: t.joker };
+    });
+    // Mark all spieltags as loaded so per-spieltag calls are skipped
+    for (let i = 1; i <= 34; i++) { if (!allTipps[i]) allTipps[i] = {}; }
+  } catch(e) { console.warn('loadAllTipps failed:', e); }
+}
+
+// ── Bulk-load ALL admin_scores in one query ──
+async function loadAllAdminScores() {
+  if (!db) return;
+  try {
+    const { data } = await db.from('admin_scores').select('*');
+    (data||[]).forEach(r => {
+      if (!allScores[r.spieltag]) allScores[r.spieltag] = {};
+      allScores[r.spieltag][r.match_id] = { home: r.score_home, away: r.score_away };
+    });
+    // Mark all spieltags as loaded
+    for (let i = 1; i <= 34; i++) { if (allScores[i] === undefined) allScores[i] = {}; }
+  } catch(e) { console.warn('loadAllAdminScores failed:', e); }
 }
 
 // ── OpenLigaDB ──
@@ -381,11 +411,13 @@ async function detectCurrentSpieltag() {
 
 // ── Score helper ──
 async function ensureAdminScores(spieltag) {
-  if (allScores[spieltag] !== undefined) return; // already loaded/cached
+  if (allScores[spieltag] !== undefined) return; // already in cache (bulk-loaded at boot)
   allScores[spieltag] = {};
   if (!db) return;
-  const { data } = await db.from('admin_scores').select('*').eq('spieltag', spieltag);
-  (data||[]).forEach(r => { allScores[spieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
+  try {
+    const { data } = await db.from('admin_scores').select('*').eq('spieltag', spieltag);
+    (data||[]).forEach(r => { allScores[spieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
+  } catch(e) {}
 }
 
 function getMatchScore(match, spieltag) {
@@ -445,17 +477,19 @@ async function loadTab(tab) {
   else if (tab === 'admin')            renderAdmin();
 }
 
-// ── Load tipps from DB ──
+// ── Load tipps from DB (cache-first; bulk already loaded at boot) ──
 async function loadTipps(spieltag) {
-  if (allTipps[spieltag]) return;
+  if (allTipps[spieltag] !== undefined) return; // already in cache
   if (!db) { allTipps[spieltag] = {}; return; }
-  const { data } = await db.from('tipps').select('*').eq('spieltag', spieltag);
-  const map = {};
-  (data||[]).forEach(t => {
-    if (!map[t.match_id]) map[t.match_id] = {};
-    map[t.match_id][t.player_id] = { home: t.tip_home, away: t.tip_away, joker: t.joker };
-  });
-  allTipps[spieltag] = map;
+  try {
+    const { data } = await db.from('tipps').select('*').eq('spieltag', spieltag);
+    const map = {};
+    (data||[]).forEach(t => {
+      if (!map[t.match_id]) map[t.match_id] = {};
+      map[t.match_id][t.player_id] = { home: t.tip_home, away: t.tip_away, joker: t.joker };
+    });
+    allTipps[spieltag] = map;
+  } catch(e) { allTipps[spieltag] = {}; }
 }
 
 
@@ -476,6 +510,7 @@ function toggleMatches() {
 async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
   el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
+  try {
   const matches = await fetchMatches(currentSpieltag);
   await ensureAdminScores(currentSpieltag);
   await loadTipps(currentSpieltag);
@@ -549,6 +584,10 @@ async function renderUebersicht() {
   });
   html += '</table></div>';
   el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden. Bitte Seite neu laden.<br><small>' + e.message + '</small></div>';
+    console.error('renderUebersicht error:', e);
+  }
 }
 
 // ── RANKING (Gesamt / Halbserien) ──
@@ -579,6 +618,7 @@ function rankPlayers(pts) {
 async function renderRanking(tabId, fromST, toST) {
   const el = document.getElementById('tab-' + tabId);
   el.innerHTML = '<div class="loading">Berechne Tabelle</div>';
+  try {
   const pts    = await computeRankingPts(fromST, toST);
   const ranked = rankPlayers(pts);
   const named  = assignFunNames(ranked);
@@ -594,6 +634,10 @@ async function renderRanking(tabId, fromST, toST) {
   });
   html += '</table></div>';
   el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden.<br><small>' + e.message + '</small></div>';
+    console.error('renderRanking error:', e);
+  }
 }
 
 // ── TIPPEN ──
@@ -664,8 +708,10 @@ async function saveTipps(matchIDs) {
   if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
   const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
   if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+error.message; return; }
-  allTipps[currentSpieltag] = null; // invalidate cache
+  delete allTipps[currentSpieltag]; // invalidate cache
   await loadTipps(currentSpieltag);
+  // Also re-enable uebersicht re-render to show updated totals
+  tabLoaded['uebersicht'] = false;
   msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
 }
 
@@ -817,7 +863,17 @@ async function saveAdminScores() {
       rows.push({ spieltag: currentSpieltag, match_id: m.matchID, score_home: parseInt(h.value), score_away: parseInt(a.value) });
     }
   });
-  if (db && rows.length) await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
+  if (db && rows.length) {
+    await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
+    // Refresh bulk cache for this spieltag
+    delete allScores[currentSpieltag];
+    await ensureAdminScores(currentSpieltag);
+    // Invalidate overview cache so it re-renders with new scores
+    tabLoaded['uebersicht'] = false;
+    tabLoaded['gesamt'] = false;
+    tabLoaded['erste-halbserie'] = false;
+    tabLoaded['zweite-halbserie'] = false;
+  }
   const msg = document.getElementById('scores-msg');
   msg.className='msg msg-ok'; msg.textContent='✅ Ergebnisse gespeichert!';
 }
