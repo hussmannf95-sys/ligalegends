@@ -393,13 +393,16 @@ async function loadAllAdminScores() {
 
 // ── OpenLigaDB ──
 async function fetchMatches(spieltag) {
-  if (allMatches[spieltag]) return allMatches[spieltag];
+  if (allMatches[spieltag] !== undefined) return allMatches[spieltag]; // strict: [] ist gültiger Cache
   try {
     const r = await fetch(`https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`);
     const data = await r.json();
-    allMatches[spieltag] = data;
-    return data;
-  } catch(e) { return []; }
+    allMatches[spieltag] = Array.isArray(data) ? data : []; // nie non-Array speichern
+    return allMatches[spieltag];
+  } catch(e) {
+    allMatches[spieltag] = []; // auch Fehler cachen, kein Retry
+    return [];
+  }
 }
 async function detectCurrentSpieltag() {
   try {
@@ -532,7 +535,7 @@ async function renderUebersicht() {
       const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
       let stPts = 0;
       matches.forEach(m => {
-        const tip = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+        const tip = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
         const sc  = getMatchScore(m, currentSpieltag);
         if (tip && sc !== null) { const pts = calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker); if (pts) stPts += pts; }
       });
@@ -570,7 +573,7 @@ async function renderUebersicht() {
         <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
         <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
       matches.forEach(m => {
-        const tip     = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+        const tip     = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
         const sc      = getMatchScore(m, currentSpieltag);
         const kickoff = new Date(m.matchDateTimeUTC);
         const started = kickoff < new Date();
@@ -619,7 +622,7 @@ async function computeRankingPts(fromST, toST) {
   // tipps + adminScores already bulk-loaded at boot; ensure cache filled
   await Promise.all(spieltags.map(st => Promise.all([loadTipps(st), ensureAdminScores(st)])));
   spieltags.forEach(st => {
-    const matches = allMatches[st] || [];
+    const matches = Array.isArray(allMatches[st]) ? allMatches[st] : [];
     matches.forEach(m => {
       const sc = getMatchScore(m, st);
       if (!sc) return;
@@ -673,7 +676,7 @@ async function renderTippen() {
   allPlayers.forEach(p => {
     if (p.id !== currentUser.id) return;
     matches.forEach(m => {
-      const t = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+      const t = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
       if (t && t.joker) jokerUsed = true;
     });
   });
@@ -681,7 +684,7 @@ async function renderTippen() {
     <h2>Spieltag ${currentSpieltag} – Deine Tipps</h2>
     <div class="info-box">Du tippst als <strong>${currentUser.name}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
   matches.forEach(m => {
-    const myTip    = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
+    const myTip    = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[currentUser.id] || {};
     const kickoff   = new Date(m.matchDateTimeUTC);
     const started   = kickoff < new Date();
     const hasResult = !!(allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID]);
