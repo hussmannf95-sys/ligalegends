@@ -214,6 +214,26 @@ canvas#rankChart { display: block; width: 100%; max-width: 860px; height: 280px;
 .stat-wins-table tr:last-child td { border-bottom: none; }
 .stat-wins-bar { height: 8px; border-radius: 4px; min-width: 4px; display: inline-block;
   vertical-align: middle; margin-right: 6px; }
+/* ── REGELN ── */
+.regeln-wrap { padding: 20px; max-width: 700px; }
+.regeln-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 16px; overflow: hidden; }
+.regeln-section-header { display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.regeln-section-header .icon { font-size: 20px; }
+.regeln-section-header .label { font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
+  font-weight: 700; color: var(--accent); letter-spacing: .5px; }
+.regeln-section-body { padding: 16px 18px; }
+.regeln-section-body ul { padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.regeln-section-body li { font-size: 13px; color: var(--text); line-height: 1.5; }
+.punkte-block { margin-bottom: 20px; }
+.punkte-block h4 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px;
+  color: var(--text); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.punkte-row { display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 13px; }
+.punkte-row:last-child { border-bottom: none; }
+.punkte-row .pts-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 16px; min-width: 28px; text-align: right; }
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -293,8 +313,9 @@ const FUN_NAMES_MIDDLE = [
     <div class="tab active" data-tab="uebersicht" onclick="switchTab('uebersicht')">Übersicht</div>
     <div class="tab" data-tab="saison" onclick="switchTab('saison')">2025/26 Rückserie</div>
     <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
-    <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik</div>
+    <div class="tab" data-tab="regeln" onclick="switchTab('regeln')">📋 Regeln</div>
+    <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
 
@@ -308,8 +329,9 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-saison" style="display:none"><div class="loading">Lade Saisontabelle</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
-  <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-statistik" style="display:none"><div class="loading">Lade Statistik</div></div>
+  <div id="tab-regeln" style="display:none"></div>
+  <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
 </div>
 
@@ -549,6 +571,7 @@ async function loadTab(tab) {
   else if (tab === 'tippen')           await renderTippen();
   else if (tab === 'maumau')           await renderMauMau();
   else if (tab === 'statistik')        await renderStatistik();
+  else if (tab === 'regeln')           renderRegeln();
   else if (tab === 'admin')            renderAdmin();
 }
 
@@ -802,9 +825,24 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
+    // ── Spieler-Dropdown für Detailstats ──
+    html += '<div class="stat-section"><h3>🔍 Spieler-Details</h3>';
+    html += '<div class="stat-player-select" style="margin-bottom:16px">';
+    html += '<label>Spieler</label>';
+    html += '<select id="stat-detail-player" onchange="renderPlayerDetail()">';
+    sortedPlayers.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
+    html += '</select></div>';
+    html += '<div id="stat-detail-wrap"></div>';
+    html += '</div>';
+
     html += '</div>'; // stat-wrap
 
     el.innerHTML = html;
+
+    // Detail-Daten für renderPlayerDetail
+    el._ptsPerST     = ptsPerST;
+    el._accuracy     = accuracy;
+    el._stArr2       = stArr;
 
     // Chart-Daten als closures für drawRankChart
     el._stArr        = stArr;
@@ -1266,6 +1304,163 @@ async function saveTipps(matchIDs) {
   // Also re-enable uebersicht re-render to show updated totals
   tabLoaded['uebersicht'] = false;
   msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
+}
+
+// ── SPIELER-DETAIL STATS ──
+function renderPlayerDetail() {
+  const el  = document.getElementById('tab-statistik');
+  const pid = document.getElementById('stat-detail-player')?.value;
+  const wrap = document.getElementById('stat-detail-wrap');
+  if (!pid || !wrap || !el._stArr2) return;
+
+  const stArr = el._stArr2;
+  const teamPts = {};
+  const tipPts  = {};
+
+  stArr.forEach(st => {
+    const tippsForST = allTipps[st] || {};
+    const matches    = Array.isArray(allMatches[st]) ? allMatches[st] : [];
+    Object.keys(tippsForST).forEach(midStr => {
+      const matchId = +midStr;
+      const tip = tippsForST[matchId]?.[pid];
+      if (!tip) return;
+      let sc = allScores[st]?.[matchId] || null;
+      if (!sc) {
+        const m = matches.find(x => x.matchID === matchId);
+        if (m?.matchIsFinished && m.matchResults?.length) {
+          const fin = m.matchResults.find(r=>r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];
+          sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+        }
+      }
+      if (!sc) return;
+      const pts = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker) || 0;
+      const m = matches.find(x => x.matchID === matchId);
+      const t1 = m?.team1?.teamName || '?';
+      const t2 = m?.team2?.teamName || '?';
+      [t1, t2].forEach(t => {
+        if (!teamPts[t]) teamPts[t] = { pts: 0, games: 0 };
+        teamPts[t].pts += pts; teamPts[t].games++;
+      });
+      if (pts > 0) {
+        const key = tip.home + ':' + tip.away;
+        if (!tipPts[key]) tipPts[key] = { pts: 0, count: 0 };
+        tipPts[key].pts += pts; tipPts[key].count++;
+      }
+    });
+  });
+
+  const teamArr = Object.entries(teamPts).filter(([,v])=>v.games>0).sort((a,b)=>b[1].pts-a[1].pts);
+  const tipArr  = Object.entries(tipPts).sort((a,b)=>b[1].pts-a[1].pts).slice(0,12);
+  const maxTeamPts = teamArr[0]?.[1].pts || 1;
+
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">';
+
+  // Punkte nach Mannschaften
+  html += '<div>';
+  html += '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.5px">PUNKTE NACH MANNSCHAFTEN</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  if (teamArr.length) {
+    teamArr.forEach(([name, v]) => {
+      const barW = Math.round((v.pts / maxTeamPts) * 70);
+      html += `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:4px 6px 4px 0;color:var(--muted);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</td>
+        <td style="text-align:right;padding:4px 6px;font-weight:600;min-width:20px">${v.pts}</td>
+        <td style="padding:4px 0 4px 4px"><div style="height:5px;border-radius:3px;background:var(--accent);width:${Math.max(barW,3)}px;opacity:.75"></div></td>
+      </tr>`;
+    });
+  } else {
+    html += `<tr><td style="color:var(--muted);padding:10px 0;font-size:11px" colspan="3">Paarungen noch nicht geladen — zuerst Spieltage in Übersicht anklicken.</td></tr>`;
+  }
+  html += '</table></div>';
+
+  // Aus welchen Tipps kommen die Punkte?
+  html += '<div>';
+  html += '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.5px">AUS WELCHEN TIPPS KOMMEN DIE PUNKTE?</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  if (tipArr.length) {
+    html += '<tr style="color:var(--muted);font-size:10px"><td style="padding-bottom:4px">Tipp</td><td style="text-align:center">Anz.</td><td style="text-align:right">Punkte</td></tr>';
+    tipArr.forEach(([tip, v]) => {
+      html += `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:4px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px">${tip}</td>
+        <td style="text-align:center;color:var(--muted);font-size:10px">${v.count}×</td>
+        <td style="text-align:right;font-weight:600;color:var(--accent)">${v.pts}</td>
+      </tr>`;
+    });
+  } else {
+    html += `<tr><td style="color:var(--muted);padding:10px 0;font-size:11px">Noch keine Punkte erzielt.</td></tr>`;
+  }
+  html += '</table></div>';
+
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ── REGELN ──
+function renderRegeln() {
+  const el = document.getElementById('tab-regeln');
+  el.innerHTML = `<div class="regeln-wrap">
+
+    <div class="regeln-section">
+      <div class="regeln-section-header">
+        <span class="icon">🎯</span>
+        <span class="label">Tippen</span>
+      </div>
+      <div class="regeln-section-body">
+        <ul>
+          <li>Tipps dürfen bis zum Anstoß abgegeben werden.</li>
+          <li>Es werden absolute Endergebnisse nach 90 Minuten getippt (ohne Verlängerung).</li>
+          <li>Tipps dürfen nach der Abgabe noch bis zum Anstoß geändert werden.</li>
+          <li>Die Tipps anderer Teilnehmer sind erst nach dem Anstoß bzw. nach Ergebniseingabe sichtbar.</li>
+          <li>Pro Spieltag kann ein Joker auf genau ein Spiel gesetzt werden.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header">
+        <span class="icon">🏆</span>
+        <span class="label">Punkte</span>
+      </div>
+      <div class="regeln-section-body">
+        <div class="punkte-block">
+          <h4>Heimsieg</h4>
+          <div class="punkte-row"><span>Tendenz richtig</span><span class="pts-badge" style="color:#cbd5e1">1</span></div>
+          <div class="punkte-row"><span>Differenz richtig (gleicher Torabstand)</span><span class="pts-badge" style="color:#93c5fd">2</span></div>
+          <div class="punkte-row"><span>Ergebnis richtig</span><span class="pts-badge" style="color:#2dd4bf">3</span></div>
+        </div>
+        <div class="punkte-block">
+          <h4>Unentschieden</h4>
+          <div class="punkte-row"><span>Tendenz richtig</span><span class="pts-badge" style="color:#cbd5e1">1</span></div>
+          <div class="punkte-row"><span>Differenz richtig (= exaktes Unentschieden)</span><span class="pts-badge" style="color:#93c5fd">2</span></div>
+          <div class="punkte-row"><span>Ergebnis richtig</span><span class="pts-badge" style="color:#2dd4bf">3</span></div>
+        </div>
+        <div class="punkte-block">
+          <h4>Auswärtssieg</h4>
+          <div class="punkte-row"><span>Tendenz richtig</span><span class="pts-badge" style="color:#cbd5e1">1</span></div>
+          <div class="punkte-row"><span>Differenz richtig (gleicher Torabstand)</span><span class="pts-badge" style="color:#93c5fd">2</span></div>
+          <div class="punkte-row"><span>Ergebnis richtig</span><span class="pts-badge" style="color:#2dd4bf">3</span></div>
+        </div>
+        <div style="background:rgba(0,196,160,.08);border:1px solid rgba(0,196,160,.2);border-radius:8px;padding:12px 14px;font-size:13px;margin-top:4px">
+          🃏 <strong style="color:var(--accent)">Joker</strong> verdoppelt die erzielten Punkte des gewählten Spiels (0 × 2 = 0 — Joker muss treffen!).
+          Exaktes Ergebnis + Joker = <strong style="color:#fbbf24">6 Punkte</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header">
+        <span class="icon">💰</span>
+        <span class="label">MauMau Kopeken</span>
+      </div>
+      <div class="regeln-section-body">
+        <ul>
+          <li>Wer am Ende der Saison auf dem letzten Platz landet, zahlt den vereinbarten Betrag in die Vereinskasse.</li>
+          <li>Weitere Zahlungen und Einnahmen werden im Tab „MauMau Kopeken" verwaltet.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>`;
 }
 
 // ── MAYMAY ──
