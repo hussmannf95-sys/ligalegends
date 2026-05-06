@@ -185,12 +185,35 @@ header {
 .s-sum   { font-family:'Barlow',sans-serif; font-weight:600; font-size:13px;
            color:var(--accent); padding-right:6px; border-left:1px solid var(--border); }
 /* Punktfarben */
-.p6 { color:#f59e0b; font-weight:700; }   /* 6 – gold   (exakt + Joker) */
-.p4 { color:#10b981; font-weight:600; }   /* 4 – grün   (Abstand + Joker) */
-.p3 { color:#00c4a0; font-weight:600; }   /* 3 – teal   (exakt) */
-.p2 { color:#60a5fa; font-weight:500; }   /* 2 – blau   (Torabstand) */
-.p1 { color:#9ca3af; font-weight:400; }   /* 1 – grau   (Tendenz) */
-.p0 { color:#374151; font-weight:400; }   /* 0 – dunkel (falsch/kein Tipp) */
+.p6 { color:#fbbf24; font-weight:700; }   /* 6 – gold    (exakt + Joker) */
+.p4 { color:#34d399; font-weight:700; }   /* 4 – grün    (Abstand + Joker) */
+.p3 { color:#2dd4bf; font-weight:600; }   /* 3 – teal    (exakt) */
+.p2 { color:#93c5fd; font-weight:500; }   /* 2 – hellblau (Torabstand) */
+.p1 { color:#cbd5e1; font-weight:400; }   /* 1 – hellgrau (Tendenz) */
+.p0 { color:#4b5563; font-weight:400; }   /* 0 – mittelgrau (falsch/kein Tipp) */
+/* ── STATISTIK ── */
+.stat-wrap { padding: 16px; max-width: 900px; }
+.stat-player-select { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: center; }
+.stat-player-select label { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.stat-player-select select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text); padding: 7px 12px; font-size: 13px; font-family: 'Barlow', sans-serif;
+  outline: none; cursor: pointer; }
+.stat-player-select select:focus { border-color: var(--accent); }
+.stat-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 16px; }
+.stat-section h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700;
+  color: var(--accent); margin-bottom: 14px; }
+.stat-canvas-wrap { width: 100%; overflow-x: auto; }
+canvas#rankChart { display: block; width: 100%; max-width: 860px; height: 280px; }
+.stat-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; }
+.stat-legend-item { display: flex; align-items: center; gap: 6px; }
+.stat-legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.stat-wins-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.stat-wins-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.stat-wins-table tr:last-child td { border-bottom: none; }
+.stat-wins-bar { height: 8px; border-radius: 4px; min-width: 4px; display: inline-block;
+  vertical-align: middle; margin-right: 6px; }
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -271,6 +294,7 @@ const FUN_NAMES_MIDDLE = [
     <div class="tab" data-tab="saison" onclick="switchTab('saison')">2025/26 Rückserie</div>
     <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
+    <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
 
@@ -285,6 +309,7 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-saison" style="display:none"><div class="loading">Lade Saisontabelle</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
+  <div id="tab-statistik" style="display:none"><div class="loading">Lade Statistik</div></div>
   <div id="tab-admin" style="display:none"></div>
 </div>
 
@@ -523,6 +548,7 @@ async function loadTab(tab) {
   else if (tab === 'saison')           await renderSaison();
   else if (tab === 'tippen')           await renderTippen();
   else if (tab === 'maumau')           await renderMauMau();
+  else if (tab === 'statistik')        await renderStatistik();
   else if (tab === 'admin')            renderAdmin();
 }
 
@@ -548,6 +574,229 @@ function toggleMatches() {
   tabLoaded['uebersicht'] = false;
   loadTab('uebersicht');
 }
+// ── STATISTIK ──
+// Spieler-Farben für Chart (bis zu 16 Spieler)
+const PLAYER_COLORS = [
+  '#00c4a0','#60a5fa','#f59e0b','#f472b6','#a78bfa','#34d399',
+  '#fb923c','#e879f9','#38bdf8','#fbbf24','#4ade80','#f87171',
+  '#c084fc','#67e8f9','#facc15','#86efac'
+];
+
+async function renderStatistik() {
+  const el = document.getElementById('tab-statistik');
+  el.innerHTML = '<div class="loading">Lade Statistik…</div>';
+  try {
+    const from = RUECKSERIE_FROM;
+    const to   = Math.min(RUECKSERIE_TO, currentSpieltag);
+    const stArr = [];
+    for (let s = from; s <= to; s++) stArr.push(s);
+
+    // ── Punkte pro Spieler pro Spieltag (cache-only, kein Netzwerk) ──
+    const ptsPerST = {}; // { playerId: { st: pts } }
+    allPlayers.forEach(p => { ptsPerST[p.id] = {}; });
+
+    stArr.forEach(st => {
+      const tippsForST = allTipps[st] || {};
+      Object.keys(tippsForST).forEach(midStr => {
+        const matchId = +midStr;
+        let sc = (allScores[st]?.[matchId]) || null;
+        if (!sc && Array.isArray(allMatches[st])) {
+          const m = allMatches[st].find(x => x.matchID === matchId);
+          if (m?.matchIsFinished && m.matchResults?.length) {
+            const fin = m.matchResults.find(r => r.resultTypeID === 2) || m.matchResults[m.matchResults.length-1];
+            sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+          }
+        }
+        if (!sc) return;
+        allPlayers.forEach(p => {
+          const tip = tippsForST[matchId]?.[p.id];
+          if (!tip) return;
+          const pts = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
+          if (pts) ptsPerST[p.id][st] = (ptsPerST[p.id][st] || 0) + pts;
+        });
+      });
+    });
+
+    // ── Kumulierte Gesamtpunkte & laufende Platzierung pro Spieltag ──
+    // rankOverTime[playerId][st] = Platzierung nach diesem Spieltag
+    const cumPts   = {}; allPlayers.forEach(p => { cumPts[p.id] = 0; });
+    const rankOverTime = {}; allPlayers.forEach(p => { rankOverTime[p.id] = {}; });
+
+    stArr.forEach(st => {
+      allPlayers.forEach(p => { cumPts[p.id] += (ptsPerST[p.id][st] || 0); });
+      // Rang ermitteln (1 = bester)
+      const sorted = [...allPlayers].sort((a,b) => cumPts[b.id] - cumPts[a.id]);
+      sorted.forEach((p, i) => { rankOverTime[p.id][st] = i + 1; });
+    });
+
+    // ── Gesamtpunkte & Sortierung ──
+    const totals = {};
+    allPlayers.forEach(p => { totals[p.id] = stArr.reduce((s, st) => s + (ptsPerST[p.id][st] || 0), 0); });
+    const sortedPlayers = [...allPlayers].sort((a, b) => totals[b.id] - totals[a.id]);
+
+    // ── Saisonsiege: welcher Spieler hat einen Spieltag gewonnen (meiste Punkte diesen ST) ──
+    const stWins = {}; allPlayers.forEach(p => { stWins[p.id] = 0; });
+    stArr.forEach(st => {
+      const maxPts = Math.max(...allPlayers.map(p => ptsPerST[p.id][st] || 0));
+      if (maxPts === 0) return;
+      allPlayers.filter(p => (ptsPerST[p.id][st] || 0) === maxPts).forEach(p => { stWins[p.id]++; });
+    });
+    const maxWins = Math.max(...allPlayers.map(p => stWins[p.id]), 1);
+
+    // ── HTML aufbauen ──
+    const colorMap = {};
+    sortedPlayers.forEach((p, i) => { colorMap[p.id] = PLAYER_COLORS[i % PLAYER_COLORS.length]; });
+
+    let html = '<div class="stat-wrap">';
+
+    // Spieler-Auswahl
+    html += '<div class="stat-section"><h3>Spieler auswählen</h3>';
+    html += '<div class="stat-player-select">';
+    html += '<label>Spieler 1</label>';
+    html += '<select id="stat-p1" onchange="drawRankChart()">';
+    sortedPlayers.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
+    html += '</select>';
+    html += '<label style="margin-left:12px">Vergleich mit</label>';
+    html += '<select id="stat-p2" onchange="drawRankChart()">';
+    html += '<option value="">— kein Vergleich —</option>';
+    sortedPlayers.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
+    html += '</select>';
+    html += '</div></div>';
+
+    // Chart
+    html += '<div class="stat-section"><h3>Platzierung im Saisonverlauf</h3>';
+    html += '<div class="stat-canvas-wrap"><canvas id="rankChart"></canvas></div>';
+    html += '<div id="stat-legend" class="stat-legend"></div>';
+    html += '</div>';
+
+    // Saisonsiege
+    html += '<div class="stat-section"><h3>Spieltag-Siege in der Saison</h3>';
+    html += '<table class="stat-wins-table">';
+    sortedPlayers.forEach(p => {
+      const w = stWins[p.id];
+      const barW = Math.round((w / maxWins) * 160);
+      html += `<tr>
+        <td style="width:130px;font-weight:600;font-size:12px">${p.name}</td>
+        <td><span class="stat-wins-bar" style="width:${barW}px;background:${colorMap[p.id]}"></span>
+            <span style="font-weight:600">${w}</span> Spieltag${w!==1?'e':''}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+    html += '</div>'; // stat-wrap
+
+    el.innerHTML = html;
+
+    // Chart-Daten als closures für drawRankChart
+    el._stArr        = stArr;
+    el._rankOverTime = rankOverTime;
+    el._colorMap     = colorMap;
+    el._sortedPlayers = sortedPlayers;
+    el._nPlayers     = allPlayers.length;
+
+    drawRankChart();
+  } catch(e) {
+    el.innerHTML = `<div class="loading" style="color:var(--danger)">Fehler: ${e.message}</div>`;
+    console.error('renderStatistik:', e);
+  }
+}
+
+function drawRankChart() {
+  const el    = document.getElementById('tab-statistik');
+  const canvas = document.getElementById('rankChart');
+  if (!canvas || !el._stArr) return;
+
+  const p1id   = document.getElementById('stat-p1')?.value;
+  const p2id   = document.getElementById('stat-p2')?.value || null;
+  const stArr  = el._stArr;
+  const rot    = el._rankOverTime;
+  const cmap   = el._colorMap;
+  const n      = el._nPlayers;
+
+  // Canvas size
+  const W = canvas.offsetWidth || 860;
+  const H = 280;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const PAD_L = 36, PAD_R = 16, PAD_T = 16, PAD_B = 32;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  // Background
+  ctx.fillStyle = '#181c27';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines (ranks 1, 5, 10, ...)
+  ctx.strokeStyle = '#2a2f45';
+  ctx.lineWidth = 1;
+  ctx.font = '10px Barlow, sans-serif';
+  ctx.fillStyle = '#9ba3c4';
+  ctx.textAlign = 'right';
+  const step = n <= 10 ? 2 : 5;
+  for (let r = 1; r <= n; r += step) {
+    const y = PAD_T + ((r - 1) / (n - 1)) * chartH;
+    ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+    ctx.fillText(r, PAD_L - 4, y + 3);
+  }
+
+  // X-axis labels
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9ba3c4';
+  stArr.forEach((st, i) => {
+    const x = PAD_L + (i / Math.max(stArr.length - 1, 1)) * chartW;
+    ctx.fillText('ST' + st, x, H - PAD_B + 14);
+  });
+
+  // Draw line for a player
+  function drawLine(pid, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    let first = true;
+    stArr.forEach((st, i) => {
+      const rank = rot[pid]?.[st];
+      if (rank === undefined) return;
+      const x = PAD_L + (i / Math.max(stArr.length - 1, 1)) * chartW;
+      const y = PAD_T + ((rank - 1) / Math.max(n - 1, 1)) * chartH;
+      first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      first = false;
+    });
+    ctx.stroke();
+    // Dots
+    stArr.forEach((st, i) => {
+      const rank = rot[pid]?.[st];
+      if (rank === undefined) return;
+      const x = PAD_L + (i / Math.max(stArr.length - 1, 1)) * chartW;
+      const y = PAD_T + ((rank - 1) / Math.max(n - 1, 1)) * chartH;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  }
+
+  if (p1id) drawLine(p1id, cmap[p1id] || '#00c4a0');
+  if (p2id && p2id !== p1id) drawLine(p2id, cmap[p2id] || '#60a5fa');
+
+  // Legend
+  const legendEl = document.getElementById('stat-legend');
+  if (legendEl) {
+    const players = [p1id, p2id && p2id !== p1id ? p2id : null].filter(Boolean);
+    legendEl.innerHTML = players.map(pid => {
+      const pl = el._sortedPlayers.find(p => p.id === pid);
+      return `<div class="stat-legend-item">
+        <div class="stat-legend-dot" style="background:${cmap[pid]}"></div>
+        <span>${pl ? pl.name : pid}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
 // ── ÜBERSICHT ──
 async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
