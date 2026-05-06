@@ -191,9 +191,10 @@ const LIGA   = 'bl1';
 const SAISON = '2025'; // 2025 = Saison 2025/26
 
 // Points system
-const PTS_CORRECT = 3;  // exact score
-const PTS_TEND    = 1;  // correct tendency (W/D/L)
-const PTS_JOKER   = 2;  // bonus if joker & correct tendency
+const PTS_CORRECT = 3;  // exaktes Ergebnis
+const PTS_DIFF    = 2;  // richtiger Torabstand (z.B. 4:1 = 3:0)
+const PTS_TEND    = 1;  // richtige Tendenz (S/U/N)
+// Joker verdoppelt die erzielten Punkte
 
 // Fun names by rank tier (for N players, assigned from top to bottom)
 // Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
@@ -442,8 +443,13 @@ function getTendency(home, away) {
 function calcPoints(tipHome, tipAway, realHome, realAway, joker) {
   if (realHome === null || realHome === undefined) return null;
   let pts = 0;
-  if (tipHome == realHome && tipAway == realAway) { pts = PTS_CORRECT; }
-  else if (getTendency(tipHome, tipAway) === getTendency(realHome, realAway)) { pts = PTS_TEND; }
+  if (+tipHome === +realHome && +tipAway === +realAway) {
+    pts = PTS_CORRECT; // exaktes Ergebnis
+  } else if ((+tipHome - +tipAway) === (+realHome - +realAway)) {
+    pts = PTS_DIFF;    // richtiger Torabstand
+  } else if (getTendency(+tipHome, +tipAway) === getTendency(+realHome, +realAway)) {
+    pts = PTS_TEND;    // richtige Tendenz
+  }
   if (joker && pts > 0) pts *= 2;
   return pts;
 }
