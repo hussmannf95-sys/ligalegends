@@ -151,6 +151,14 @@ header {
 /* ── COLLAPSIBLE MATCH COLUMNS ── */
 .match-col { transition: opacity .2s; }
 .overview-table.collapsed .match-col { display: none; }
+/* Collapsed: remove horizontal scroll, table fits viewport */
+.overview-table.collapsed { min-width: 0 !important; }
+.overview-wrap.is-collapsed { overflow-x: hidden; }
+.overview-table.collapsed .name-cell { min-width: 0; max-width: 52vw; }
+.overview-table.collapsed .rank-cell { width: 28px; font-size: 14px; }
+.overview-table.collapsed .sum-cell  { font-size: 13px; padding-right: 8px; min-width: 0; }
+.overview-table.collapsed .total-cell { font-size: 13px; padding-right: 10px; min-width: 0; }
+.overview-table.collapsed .col-label  { font-size: 10px; padding-right: 6px; }
 .toggle-matches-btn {
   background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
   padding: 4px 12px; border-radius: 6px; font-size: 12px; font-family: 'Barlow Condensed', sans-serif;
@@ -454,9 +462,11 @@ async function loadTipps(spieltag) {
 // ── Toggle Paarungen Columns ──
 function toggleMatches() {
   matchesExpanded = !matchesExpanded;
-  const tbl = document.getElementById('overview-table-main');
-  const btn = document.getElementById('toggle-matches-btn');
-  if (tbl) tbl.classList.toggle('collapsed', !matchesExpanded);
+  const tbl  = document.getElementById('overview-table-main');
+  const wrap = document.getElementById('overview-wrap-main');
+  const btn  = document.getElementById('toggle-matches-btn');
+  if (tbl)  tbl.classList.toggle('collapsed', !matchesExpanded);
+  if (wrap) wrap.classList.toggle('is-collapsed', !matchesExpanded);
   if (btn) {
     btn.textContent = matchesExpanded ? '− Paarungen' : '＋ Paarungen';
     btn.classList.toggle('expanded', matchesExpanded);
@@ -478,7 +488,7 @@ async function renderUebersicht() {
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
   const collapsedClass = matchesExpanded ? '' : 'collapsed';
-  let html = `<div class="overview-wrap">
+  let html = `<div class="overview-wrap ${matchesExpanded ? '' : 'is-collapsed'}" id="overview-wrap-main">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <button id="toggle-matches-btn" class="toggle-matches-btn ${matchesExpanded?'expanded':''}" onclick="toggleMatches()">
         ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
