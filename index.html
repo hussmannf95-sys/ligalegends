@@ -835,6 +835,49 @@ async function renderStatistik() {
     html += '<div id="stat-detail-wrap"></div>';
     html += '</div>';
 
+    // ── Legend seit... ──
+    // Proxy: früheste Tipp-Spieltag → Halbserie bestimmen
+    // Halbserien-Definitionen (anpassbar): jede Halbserie = 17 Spieltage
+    const HALBSERIEN = [
+      { label: '2025/26 Rückserie',  from: 18, to: 34 },
+      { label: '2025/26 Hinserie',   from:  1, to: 17 },
+      { label: '2024/25 Rückserie',  from: 52, to: 68 }, // Platzhalter vergangene Saisons
+      { label: '2024/25 Hinserie',   from: 35, to: 51 },
+    ];
+    const legendData = sortedPlayers.map(p => {
+      // Alle Spieltage auf denen dieser Spieler mind. 1 Tipp hat
+      const tippedSTs = [];
+      for (let st = 1; st <= 68; st++) {
+        const tippsForST = allTipps[st] || {};
+        const hasTipp = Object.values(tippsForST).some(m => m[p.id]);
+        if (hasTipp) tippedSTs.push(st);
+      }
+      const firstST = tippedSTs.length ? Math.min(...tippedSTs) : null;
+      // Welche Halbserie war das?
+      const firstHS = firstST ? (HALBSERIEN.find(h => firstST >= h.from && firstST <= h.to)?.label || 'Saison ' + SAISON) : null;
+      // Wie viele Halbserien mit mind. 1 Tipp?
+      const hsSessions = HALBSERIEN.filter(h => {
+        for (let st = h.from; st <= h.to; st++) {
+          const tippsForST = allTipps[st] || {};
+          if (Object.values(tippsForST).some(m => m[p.id])) return true;
+        }
+        return false;
+      }).length;
+      return { p, firstST, firstHS, hsSessions };
+    });
+
+    html += '<div class="stat-section"><h3>🗓 Legend seit…</h3>';
+    html += '<table class="stat-wins-table" style="font-size:12px">';
+    html += '<tr style="color:var(--muted);font-size:11px"><td>Spieler</td><td>Dabei seit</td><td style="text-align:right">Halbserien</td></tr>';
+    legendData.forEach(({ p, firstHS, hsSessions }) => {
+      html += `<tr>
+        <td style="font-weight:600;padding:7px 10px 7px 0">${p.name}</td>
+        <td style="color:var(--muted)">${firstHS || '–'}</td>
+        <td style="text-align:right;font-weight:600;color:var(--accent)">${hsSessions || '–'}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+
     html += '</div>'; // stat-wrap
 
     el.innerHTML = html;
