@@ -58,7 +58,7 @@ header {
 /* Match header row */
 .match-header th { background: var(--surface2); border-bottom: 1px solid var(--border); }
 .match-col-header { padding: 6px 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .3px; min-width: 68px; }
-.match-score { font-size: 14px; font-weight: 700; color: var(--text); padding: 4px 8px 8px; text-align: center; }
+.match-score { font-size: 13px; font-weight: 500; font-family: 'Barlow', sans-serif; color: var(--text); padding: 4px 8px 8px; text-align: center; }
 /* Tipper row */
 .tipper-row td { border-bottom: 1px solid var(--border); height: 38px; }
 .tipper-row:hover td { background: rgba(255,255,255,.02); }
@@ -80,8 +80,8 @@ header {
 .pts-joker-miss { color: var(--joker-miss); }
 .pts-normal { color: var(--text); }
 .joker-indicator { font-size: 9px; vertical-align: super; }
-.sum-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-align: right; padding-right: 8px; color: var(--accent); min-width: 50px; }
-.total-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-align: right; padding-right: 12px; color: var(--text); min-width: 60px; }
+.sum-cell { font-family: 'Barlow', sans-serif; font-weight: 400; font-size: 14px; text-align: right; padding-right: 10px; color: var(--accent); min-width: 50px; letter-spacing: .3px; }
+.total-cell { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 14px; text-align: right; padding-right: 14px; color: var(--text); min-width: 60px; letter-spacing: .3px; }
 .col-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--muted); text-align: right; padding-right: 8px; }
 /* ── TIPPS INPUT ── */
 .tippen-wrap { padding: 20px; max-width: 700px; }
@@ -147,6 +147,17 @@ header {
 .msg { padding: 14px 16px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
 .msg-ok { background: rgba(0,196,160,.1); color: var(--accent); border: 1px solid rgba(0,196,160,.2); }
 .msg-err { background: rgba(232,65,65,.1); color: var(--danger); border: 1px solid rgba(232,65,65,.2); }
+
+/* ── COLLAPSIBLE MATCH COLUMNS ── */
+.match-col { transition: opacity .2s; }
+.overview-table.collapsed .match-col { display: none; }
+.toggle-matches-btn {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 12px; border-radius: 6px; font-size: 12px; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600; cursor: pointer; letter-spacing: .5px; transition: all .15s; white-space: nowrap;
+}
+.toggle-matches-btn:hover { border-color: var(--accent); color: var(--accent); }
+.toggle-matches-btn.expanded { border-color: var(--accent); color: var(--accent); background: rgba(0,196,160,.08); }
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -180,8 +191,8 @@ const PTS_JOKER   = 2;  // bonus if joker & correct tendency
 // Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
 // Middle names repeat as needed
 const FUN_NAMES_MIDDLE = [
-  'Meister der Herzen', 'Taktikfuchs', 'Abstauber', 'Pragmatiker', 'Glücksritter',
-  'Würfel-Stratege', 'Esoteriker', 'Quereinsteiger', 'Kreisliga-Legende', 'Snooker-Experte', 'Fußball-Romantiker'
+  'Wolfsrudel', 'Taktikfuchs', 'Abstauber', 'Glücksritter', 'Pragmatiker',
+  'Würfel-Stratege', 'Esoteriker', 'Quereinsteiger', 'Fußball-Romantiker', 'Snooker-Experte', 'Kreisliga-Legende'
 ];
 </script>
 
@@ -265,6 +276,7 @@ let allMatches    = {}; // { spieltag: [{...OpenLigaDB match}] }
 let allScores     = {}; // { spieltag: { matchId: {home,away} } } – admin overrides
 let maumauData    = [];
 let tabLoaded     = {};
+let matchesExpanded = false; // Paarungen in Übersicht ein-/ausblenden
 
 // ── Fun name assignment ──
 function assignFunNames(players) {
@@ -438,6 +450,18 @@ async function loadTipps(spieltag) {
   allTipps[spieltag] = map;
 }
 
+
+// ── Toggle Paarungen Columns ──
+function toggleMatches() {
+  matchesExpanded = !matchesExpanded;
+  const tbl = document.getElementById('overview-table-main');
+  const btn = document.getElementById('toggle-matches-btn');
+  if (tbl) tbl.classList.toggle('collapsed', !matchesExpanded);
+  if (btn) {
+    btn.textContent = matchesExpanded ? '− Paarungen' : '＋ Paarungen';
+    btn.classList.toggle('expanded', matchesExpanded);
+  }
+}
 // ── ÜBERSICHT ──
 async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
@@ -453,11 +477,19 @@ async function renderUebersicht() {
 
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
-  let html = '<div class="overview-wrap"><table class="overview-table">';
+  const collapsedClass = matchesExpanded ? '' : 'collapsed';
+  let html = `<div class="overview-wrap">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button id="toggle-matches-btn" class="toggle-matches-btn ${matchesExpanded?'expanded':''}" onclick="toggleMatches()">
+        ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
+      </button>
+      <span style="font-size:11px;color:var(--muted);">${matchesExpanded ? 'Alle Spalten sichtbar' : 'Paarungen ausgeblendet'}</span>
+    </div>
+  <table id="overview-table-main" class="overview-table ${collapsedClass}">`;
   // Header: team names
   html += '<tr class="match-header"><th></th><th></th>';
   matches.forEach(m => {
-    html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
+    html += `<th class="match-col match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
   });
   html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
 
@@ -465,7 +497,7 @@ async function renderUebersicht() {
   html += '<tr class="match-header"><td></td><td></td>';
   matches.forEach(m => {
     const sc = getMatchScore(m, currentSpieltag);
-    html += `<td class="match-score">${sc ? sc.home + ':' + sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+    html += `<td class="match-col match-score">${sc ? sc.home + ':' + sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
   });
   html += '<td></td><td></td></tr>';
 
@@ -481,10 +513,10 @@ async function renderUebersicht() {
       const sc      = getMatchScore(m, currentSpieltag);
       const kickoff = new Date(m.matchDateTimeUTC);
       const started = kickoff < new Date();
-      // Tip only visible if: own tip, OR match started/finished, OR admin
+      // Tip visible if: own tip, match started/finished, admin, OR score already entered
       const isOwn   = p.id === currentUser.id;
-      const visible = isOwn || started || isAdmin;
-      if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
+      const visible = isOwn || started || isAdmin || sc !== null;
+      if (!tip || !visible) { html += '<td class="match-col tip-cell"><span class="tip-none">–</span></td>'; return; }
       const pts = sc !== null ? calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker) : null;
       if (pts !== null) stPts += pts;
       let tipClass = 'tip-none';
@@ -497,10 +529,10 @@ async function renderUebersicht() {
       let ptsHtml = '';
       if (pts !== null) {
         const ptsClass = tip.joker ? (pts > 0 ? 'pts-joker-hit' : 'pts-joker-miss') : 'pts-normal';
-        const label = tip.joker && pts === 0 ? 'J' : (pts > 0 ? '+'+pts : '0');
-        ptsHtml = `<span class="${ptsClass}" style="font-size:10px;display:block">${label}</span>`;
+        const label = tip.joker && pts === 0 ? '🃏' : (pts > 0 ? '+'+pts : '0');
+        ptsHtml = `<span class="${ptsClass}" style="font-size:10px;margin-left:3px;font-weight:600">${label}</span>`;
       }
-      html += `<td class="tip-cell"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+      html += `<td class="match-col tip-cell" style="white-space:nowrap"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
     });
     const totalPts = playerPts[p.id] || 0;
     html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
@@ -654,7 +686,7 @@ async function renderMauMau() {
     const player = allPlayers.find(p => p.id === row.player_id);
     html += `<tr>
       <td>${player ? player.name : row.player_id}</td>
-      <td style="font-family:'Barlow Condensed';font-weight:700">${row.amount} MMK</td>
+      <td style="font-family:'Barlow',sans-serif;font-weight:400;letter-spacing:.3px">${row.amount} MMK</td>
       <td><span class="badge badge-${row.type}">${row.type}</span></td>
       <td style="color:var(--muted)">${row.description||''}</td>
     </tr>`;
