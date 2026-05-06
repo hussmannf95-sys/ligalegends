@@ -23,16 +23,9 @@
   --correct: #00c4a0;
   --wrong: #e84141;
   --tend: #f5a623;
-  /* ── KABINENTALK FARBEN ── */
-  --kab:       #3B82F6;
-  --kab2:      #60A5FA;
-  --kab-dark:  #1D4ED8;
-  --kab-green: #22C55E;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
 /* ── TOP NAV ── */
 header {
   background: var(--header-bg);
@@ -47,43 +40,26 @@ header {
 .user-pill strong { color: var(--text); }
 .btn-sm { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: 'Barlow', sans-serif; transition: all .15s; }
 .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
-
 /* ── TABS ── */
 .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); background: var(--surface); padding: 0 20px; overflow-x: auto; }
 .tab { padding: 14px 20px; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: .5px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; color: var(--muted); white-space: nowrap; transition: all .15s; }
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-/* Kabinentalk tab bekommt sein eigenes Blau */
-.tab[data-tab="kabinentalk"].active { color: var(--kab); border-bottom-color: var(--kab); }
-.tab[data-tab="kabinentalk"]:hover { color: var(--kab2); }
-.kab-notif {
-  display: inline-block;
-  background: var(--kab);
-  color: #fff;
-  border-radius: 50%;
-  width: 17px; height: 17px;
-  font-size: 10px; line-height: 17px;
-  text-align: center;
-  margin-left: 4px;
-  vertical-align: middle;
-  font-family: 'Barlow', sans-serif;
-  font-weight: 700;
-}
-
 /* ── SPIELTAG NAV ── */
 .spieltag-nav { display: flex; align-items: center; gap: 6px; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .spieltag-nav span { font-size: 13px; color: var(--muted); margin-right: 4px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: .5px; }
 .st-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; transition: all .12s; }
 .st-btn:hover { border-color: var(--accent); color: var(--accent); }
 .st-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
-
 /* ── OVERVIEW TABLE ── */
 .overview-wrap { overflow-x: auto; padding: 20px; }
 .overview-table { border-collapse: collapse; min-width: 900px; width: 100%; font-size: 13px; }
 .overview-table th, .overview-table td { padding: 0; }
+/* Match header row */
 .match-header th { background: var(--surface2); border-bottom: 1px solid var(--border); }
 .match-col-header { padding: 6px 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .3px; min-width: 68px; }
 .match-score { font-size: 14px; font-weight: 700; color: var(--text); padding: 4px 8px 8px; text-align: center; }
+/* Tipper row */
 .tipper-row td { border-bottom: 1px solid var(--border); height: 38px; }
 .tipper-row:hover td { background: rgba(255,255,255,.02); }
 .rank-cell { text-align: center; width: 36px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--muted); }
@@ -107,7 +83,6 @@ header {
 .sum-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-align: right; padding-right: 8px; color: var(--accent); min-width: 50px; }
 .total-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-align: right; padding-right: 12px; color: var(--text); min-width: 60px; }
 .col-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--muted); text-align: right; padding-right: 8px; }
-
 /* ── TIPPS INPUT ── */
 .tippen-wrap { padding: 20px; max-width: 700px; }
 .tippen-wrap h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
@@ -126,7 +101,6 @@ header {
 .info-box { background: rgba(0,196,160,.08); border: 1px solid rgba(0,196,160,.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
 .info-box strong { color: var(--accent); }
 .joker-warning { font-size: 11px; color: var(--joker-hit); margin-top: 4px; }
-
 /* ── MAYMAY ── */
 .maumau-wrap { padding: 20px; overflow-x: auto; }
 .maumau-table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 500px; }
@@ -136,7 +110,6 @@ header {
 .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
 .badge-zahlt { background: rgba(232,65,65,.15); color: var(--wrong); }
 .badge-kassiert { background: rgba(0,196,160,.12); color: var(--correct); }
-
 /* ── ADMIN ── */
 .admin-wrap { padding: 20px; max-width: 800px; }
 .admin-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
@@ -156,7 +129,6 @@ header {
 .score-item .match-label { flex: 1; font-size: 13px; color: var(--muted); }
 .score-item input { width: 44px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text); padding: 5px 6px; font-size: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-align: center; outline: none; }
 .score-item input:focus { border-color: var(--accent); }
-
 /* ── LOGIN ── */
 .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; }
 .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 40px; width: 340px; max-width: 90vw; }
@@ -168,296 +140,58 @@ header {
 .login-err { color: var(--danger); font-size: 12px; margin-top: 6px; }
 .login-switch { margin-top: 16px; text-align: center; font-size: 12px; color: var(--muted); }
 .login-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
-
 /* ── LOADING / EMPTY ── */
 .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 18px; letter-spacing: 1px; }
 .loading::after { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 8px; animation: blink 1s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 .msg { padding: 14px 16px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
-.msg-ok  { background: rgba(0,196,160,.1); color: var(--accent); border: 1px solid rgba(0,196,160,.2); }
+.msg-ok { background: rgba(0,196,160,.1); color: var(--accent); border: 1px solid rgba(0,196,160,.2); }
 .msg-err { background: rgba(232,65,65,.1); color: var(--danger); border: 1px solid rgba(232,65,65,.2); }
-
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
-
-/* ════════════════════════════════════════════
-   KABINENTALK
-   Supabase-Tabellen benötigt:
-   CREATE TABLE kabinentalk (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     author_id TEXT NOT NULL,
-     author_name TEXT NOT NULL,
-     body TEXT NOT NULL,
-     pinned BOOLEAN DEFAULT FALSE,
-     reactions JSONB DEFAULT '{}',
-     likes JSONB DEFAULT '[]',
-     created_at TIMESTAMPTZ DEFAULT NOW()
-   );
-   CREATE TABLE kabinentalk_comments (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     post_id UUID REFERENCES kabinentalk(id) ON DELETE CASCADE,
-     author_id TEXT NOT NULL,
-     author_name TEXT NOT NULL,
-     body TEXT NOT NULL,
-     created_at TIMESTAMPTZ DEFAULT NOW()
-   );
-   RLS: Anon darf SELECT/INSERT/UPDATE auf beiden.
-   ════════════════════════════════════════════ */
-
-.kab-wrap { padding: 16px; }
-
-/* Compose */
-.kab-compose {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 14px;
-  transition: border-color .2s, box-shadow .2s;
-}
-.kab-compose:focus-within {
-  border-color: rgba(59,130,246,.5);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.08);
-}
-.kab-compose-row { display: flex; gap: 10px; padding: 14px 14px 8px; }
-.kab-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--kab), var(--kab-dark));
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
-  color: #fff; flex-shrink: 0; letter-spacing: -.5px;
-}
-.kab-avatar.admin { background: linear-gradient(135deg, var(--kab-green), #15803D); }
-.kab-textarea {
-  flex: 1; background: none; border: none; outline: none;
-  color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px;
-  resize: none; min-height: 56px; line-height: 1.5; padding-top: 2px;
-}
-.kab-textarea::placeholder { color: var(--muted); }
-.kab-toolbar {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px 12px;
-  border-top: 1px solid var(--border);
-}
-.kab-emoji-btn, .kab-pin-btn {
-  background: none; border: none; font-size: 1rem; cursor: pointer;
-  padding: 4px 6px; border-radius: 6px; transition: background .15s;
-  opacity: .7;
-}
-.kab-emoji-btn:hover, .kab-pin-btn:hover { background: var(--surface2); opacity: 1; }
-.kab-pin-btn.active { opacity: 1; filter: drop-shadow(0 0 4px var(--kab)); }
-.kab-charcount { font-size: 11px; color: var(--muted); margin-left: auto; }
-.kab-send {
-  background: var(--kab); color: #fff; border: none;
-  border-radius: 8px; padding: 7px 16px;
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px;
-  letter-spacing: .3px; cursor: pointer; transition: background .15s;
-}
-.kab-send:hover { background: var(--kab-dark); }
-.kab-send:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
-
-/* Emoji picker */
-.kab-epicker {
-  display: none; flex-wrap: wrap; gap: 4px;
-  padding: 8px 14px; border-top: 1px solid var(--border);
-}
-.kab-epicker.open { display: flex; }
-.kab-eopt {
-  font-size: 1.2rem; cursor: pointer;
-  padding: 3px 5px; border-radius: 5px; transition: background .1s;
-}
-.kab-eopt:hover { background: var(--surface2); }
-
-/* Filter pills */
-.kab-filters {
-  display: flex; gap: 6px; margin-bottom: 14px;
-  overflow-x: auto; scrollbar-width: none;
-}
-.kab-filters::-webkit-scrollbar { display: none; }
-.kab-pill {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 20px; padding: 5px 14px; font-size: 12px;
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
-  letter-spacing: .3px; color: var(--muted); cursor: pointer;
-  white-space: nowrap; transition: all .15s; flex-shrink: 0;
-}
-.kab-pill.active {
-  background: rgba(59,130,246,.12);
-  border-color: var(--kab); color: var(--kab2);
-}
-
-/* Section labels */
-.kab-section-label {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
-  font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--muted); margin: 8px 0 6px;
-  display: flex; align-items: center; gap: 8px;
-}
-.kab-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-/* Post card */
-.kab-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  position: relative; overflow: hidden;
-  animation: kabSlideIn .25s ease both;
-  transition: box-shadow .2s;
-}
-.kab-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: transparent;
-}
-.kab-card.kab-admin-card::before { background: linear-gradient(90deg, var(--kab-green), transparent); }
-.kab-card.kab-pinned-card::before { background: linear-gradient(90deg, var(--kab), transparent); }
-.kab-card:active { box-shadow: 0 8px 30px rgba(0,0,0,.5); }
-
-@keyframes kabSlideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.kab-card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-.kab-card-meta { flex: 1; }
-.kab-author {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px;
-  color: var(--kab2); display: flex; align-items: center; gap: 6px;
-}
-.kab-author.admin-author { color: var(--kab-green); }
-.kab-role {
-  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px;
-  text-transform: uppercase; letter-spacing: .4px;
-}
-.kab-role.admin { background: rgba(34,197,94,.12); color: var(--kab-green); }
-.kab-role.user  { background: rgba(59,130,246,.1);  color: var(--kab2); }
-.kab-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-.kab-pinned-banner {
-  background: rgba(59,130,246,.07);
-  border: 1px solid rgba(59,130,246,.2);
-  border-radius: 8px; padding: 6px 10px;
-  font-size: 11px; color: var(--muted);
-  display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
-}
-.kab-pinned-banner strong { color: var(--kab2); font-size: 12px; }
-
-.kab-body {
-  font-size: 13px; line-height: 1.65; color: var(--text);
-  white-space: pre-wrap; margin-bottom: 10px;
-}
-
-/* Reactions */
-.kab-reactions { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-.kab-react-chip {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 99px; padding: 3px 9px; font-size: 12px;
-  cursor: pointer; display: flex; align-items: center; gap: 3px;
-  color: var(--text); transition: border-color .15s;
-}
-.kab-react-chip:hover { border-color: var(--kab); }
-.kab-react-chip.active { background: rgba(59,130,246,.12); border-color: var(--kab); }
-.kab-react-chip .rcount { font-size: 11px; color: var(--muted); }
-
-/* Actions */
-.kab-actions {
-  display: flex; gap: 2px; border-top: 1px solid var(--border);
-  padding-top: 8px; margin-top: 4px;
-}
-.kab-act {
-  flex: 1; background: none; border: none; color: var(--muted);
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px;
-  padding: 5px 8px; border-radius: 7px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  transition: background .15s, color .15s; letter-spacing: .3px;
-}
-.kab-act:hover { background: var(--surface2); color: var(--text); }
-.kab-act.liked { color: #F87171; }
-
-/* Comments */
-.kab-comments { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); flex-direction: column; gap: 8px; }
-.kab-comments.open { display: flex; }
-.kab-comment { display: flex; gap: 8px; align-items: flex-start; }
-.kab-comment .kab-avatar { width: 28px; height: 28px; font-size: 11px; }
-.kab-comment-bubble {
-  background: var(--surface2); border-radius: 10px 10px 10px 3px;
-  padding: 7px 11px; font-size: 12px; color: var(--text); line-height: 1.5; flex: 1;
-}
-.kab-comment-author { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; color: var(--kab2); margin-bottom: 2px; }
-.kab-comment-input-row { display: flex; gap: 7px; align-items: center; margin-top: 4px; }
-.kab-comment-input {
-  flex: 1; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 99px; padding: 6px 13px; font-size: 12px;
-  font-family: 'Barlow', sans-serif; color: var(--text); outline: none;
-}
-.kab-comment-input::placeholder { color: var(--muted); }
-.kab-comment-input:focus { border-color: rgba(59,130,246,.4); }
-.kab-comment-send {
-  background: var(--kab); border: none; border-radius: 50%;
-  width: 30px; height: 30px; color: #fff; font-size: 14px;
-  cursor: pointer; transition: background .15s;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.kab-comment-send:hover { background: var(--kab-dark); }
-
-/* Empty state */
-.kab-empty { text-align: center; padding: 50px 20px; color: var(--muted); }
-.kab-empty .icon { font-size: 2.5rem; margin-bottom: 10px; }
-.kab-empty p { font-size: 13px; line-height: 1.6; }
-
-/* Toast */
-.kab-toast {
-  position: fixed; bottom: 20px; left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 9px 18px; font-size: 13px; color: var(--text);
-  box-shadow: 0 8px 24px rgba(0,0,0,.4); transition: transform .3s ease; z-index: 999;
-}
-.kab-toast.show { transform: translateX(-50%) translateY(0); }
-
-/* Reaction popup */
-.kab-react-popup {
-  position: fixed; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 7px 9px; display: flex; gap: 5px; z-index: 300;
-  box-shadow: 0 8px 24px rgba(0,0,0,.5);
-  animation: kabSlideIn .15s ease;
-}
-.kab-react-popup button {
-  background: none; border: none; font-size: 1.2rem; cursor: pointer;
-  padding: 4px 5px; border-radius: 6px; transition: background .1s;
-}
-.kab-react-popup button:hover { background: rgba(255,255,255,.07); }
 </style>
 </head>
 <body>
 
 <!-- ════════════════════════════════
      CONFIGURATION – edit here
-════════════════════════════════ -->
+     ════════════════════════════════ -->
 <script>
-const SUPABASE_URL      = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
+// ┌──────────────────────────────────┐
+// │        SUPABASE CONFIG           │
+// │  Replace with your project data  │
+// └──────────────────────────────────┘
+const SUPABASE_URL  = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
-const ADMIN_PASSWORD    = 'liga1992admin';
+
+// Admin password (change this!)
+const ADMIN_PASSWORD = 'liga1992admin';
+
+// Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA   = 'bl1';
-const SAISON = '2025';
-const PTS_CORRECT = 3;
-const PTS_TEND    = 1;
-const PTS_JOKER   = 2;
+const SAISON = '2025'; // 2025 = Saison 2025/26
+
+// Points system
+const PTS_CORRECT = 3;  // exact score
+const PTS_TEND    = 1;  // correct tendency (W/D/L)
+const PTS_JOKER   = 2;  // bonus if joker & correct tendency
+
+// Fun names by rank tier (for N players, assigned from top to bottom)
+// Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
+// Middle names repeat as needed
 const FUN_NAMES_MIDDLE = [
-  'Orakel','Stratege','Kenner','Taktiker','Analyst',
-  'Beobachter','Mitläufer','Glücksritter','Zufallstreffer','Hobbykicker'
+  'Meister der Herzen', 'Taktikfuchs', 'Abstauber', 'Pragmatiker', 'Glücksritter',
+  'Würfel-Stratege', 'Esoteriker', 'Quereinsteiger', 'Kreisliga-Legende', 'Snooker-Experte', 'Fußball-Romantiker'
 ];
 </script>
 
 <!-- ════ HTML STRUCTURE ════ -->
-
 <div id="login-overlay" class="login-overlay">
   <div class="login-box">
     <h1>⚽ LigaLegends</h1>
     <p>seit 1992 – by hdh | Tippen – Siegen – Leiden</p>
     <input id="login-name" type="text" placeholder="Dein Name" autocomplete="off">
-    <input id="login-pin"  type="password" placeholder="PIN (4-stellig)" maxlength="6" inputmode="numeric">
+    <input id="login-pin" type="password" placeholder="PIN (4-stellig)" maxlength="6" inputmode="numeric">
     <button onclick="doLogin()">Einloggen</button>
     <div id="login-err" class="login-err"></div>
     <div class="login-switch"><a onclick="showAdminLogin()">Admin-Zugang</a></div>
@@ -485,17 +219,16 @@ const FUN_NAMES_MIDDLE = [
   </header>
 
   <div class="tabs">
-    <div class="tab active"   data-tab="uebersicht"      onclick="switchTab('uebersicht')">Übersicht</div>
-    <div class="tab"          data-tab="gesamt"          onclick="switchTab('gesamt')">Gesamt</div>
-    <div class="tab"          data-tab="erste-halbserie" onclick="switchTab('erste-halbserie')">1. Halbserie</div>
-    <div class="tab"          data-tab="zweite-halbserie"onclick="switchTab('zweite-halbserie')">2. Halbserie</div>
-    <div class="tab"          data-tab="tippen"          onclick="switchTab('tippen')">Tippen</div>
-    <div class="tab"          data-tab="maumau"          onclick="switchTab('maumau')">MauMau Kopeken</div>
-    <div class="tab"          data-tab="kabinentalk"     onclick="switchTab('kabinentalk')">💬 Kabinentalk <span class="kab-notif" id="kab-badge" style="display:none">0</span></div>
-    <div id="admin-tab" class="tab" data-tab="admin"    onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
+    <div class="tab active" data-tab="uebersicht" onclick="switchTab('uebersicht')">Übersicht</div>
+    <div class="tab" data-tab="gesamt" onclick="switchTab('gesamt')">Gesamt</div>
+    <div class="tab" data-tab="erste-halbserie" onclick="switchTab('erste-halbserie')">1. Halbserie</div>
+    <div class="tab" data-tab="zweite-halbserie" onclick="switchTab('zweite-halbserie')">2. Halbserie</div>
+    <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
+    <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
+    <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
 
-  <!-- Spieltag Nav -->
+  <!-- Spieltag Nav (shown for overview tabs) -->
   <div id="spieltag-nav" class="spieltag-nav" style="display:none">
     <span>Spieltag</span>
     <div id="st-buttons"></div>
@@ -503,21 +236,17 @@ const FUN_NAMES_MIDDLE = [
 
   <!-- Tab Contents -->
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
-  <div id="tab-gesamt"          style="display:none"><div class="loading">Lade Tabelle</div></div>
+  <div id="tab-gesamt" style="display:none"><div class="loading">Lade Tabelle</div></div>
   <div id="tab-erste-halbserie" style="display:none"><div class="loading">Lade 1. Halbserie</div></div>
-  <div id="tab-zweite-halbserie"style="display:none"><div class="loading">Lade 2. Halbserie</div></div>
-  <div id="tab-tippen"          style="display:none"><div class="loading">Lade Spieltag</div></div>
-  <div id="tab-maumau"          style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
-  <div id="tab-kabinentalk"     style="display:none"></div>
-  <div id="tab-admin"           style="display:none"></div>
+  <div id="tab-zweite-halbserie" style="display:none"><div class="loading">Lade 2. Halbserie</div></div>
+  <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
+  <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
+  <div id="tab-admin" style="display:none"></div>
 </div>
-
-<!-- Toast für Kabinentalk -->
-<div class="kab-toast" id="kab-toast"></div>
 
 <!-- ════════════════════════════════
      MAIN SCRIPT
-════════════════════════════════ -->
+     ════════════════════════════════ -->
 <script>
 // ── Init Supabase ──
 const { createClient } = supabase;
@@ -525,24 +254,24 @@ let db;
 try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase not configured'); }
 
 // ── State ──
-let currentUser    = null;
-let isAdmin        = false;
-let currentTab     = 'uebersicht';
+let currentUser   = null;
+let isAdmin       = false;
+let currentTab    = 'uebersicht';
 let currentSpieltag = 1;
-let maxSpieltag    = 34;
-let allPlayers     = [];
-let allTipps       = {};
-let allMatches     = {};
-let allScores      = {};
-let maumauData     = [];
-let tabLoaded      = {};
+let maxSpieltag   = 34;
+let allPlayers    = [];
+let allTipps      = {}; // { spieltag: { matchId: { playerId: {home,away,joker} } } }
+let allMatches    = {}; // { spieltag: [{...OpenLigaDB match}] }
+let allScores     = {}; // { spieltag: { matchId: {home,away} } } – admin overrides
+let maumauData    = [];
+let tabLoaded     = {};
 
 // ── Fun name assignment ──
 function assignFunNames(players) {
   const n = players.length;
   if (n === 0) return players;
   const result = [...players];
-  result[0].funname = 'Prophet';
+  result[0].funname = 'GOAT';
   if (n > 1) result[n-1].funname = 'Ehren-Laie';
   if (n > 2) {
     const midSlots = n - 2;
@@ -582,7 +311,7 @@ async function doAdminLogin() {
   bootApp();
 }
 function bootDemoMode(name) {
-  currentUser = { id: 'demo', name, funname: 'Orakel' };
+  currentUser = { id: 'demo', name: name, funname: 'Orakel' };
   isAdmin = false;
   bootApp();
 }
@@ -591,22 +320,18 @@ function logout() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-overlay').style.display = 'flex';
   document.getElementById('login-name').value = '';
-  document.getElementById('login-pin').value  = '';
+  document.getElementById('login-pin').value = '';
   tabLoaded = {};
-  kabPosts  = [];
 }
-
 async function bootApp() {
-  document.getElementById('login-overlay').style.display       = 'none';
+  document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('admin-login-overlay').style.display = 'none';
-  document.getElementById('app').style.display                 = 'block';
-  document.getElementById('header-user').textContent           = currentUser.name + (isAdmin ? ' (Admin)' : '');
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('header-user').textContent = currentUser.name + (isAdmin ? ' (Admin)' : '');
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
   await detectCurrentSpieltag();
   switchTab('uebersicht');
-  // pre-fetch Kabinentalk badge count
-  kabUpdateBadge();
 }
 
 // ── Load players ──
@@ -635,7 +360,16 @@ async function detectCurrentSpieltag() {
 }
 
 // ── Score helper ──
+async function ensureAdminScores(spieltag) {
+  if (allScores[spieltag] !== undefined) return; // already loaded/cached
+  allScores[spieltag] = {};
+  if (!db) return;
+  const { data } = await db.from('admin_scores').select('*').eq('spieltag', spieltag);
+  (data||[]).forEach(r => { allScores[spieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
+}
+
 function getMatchScore(match, spieltag) {
+  // Admin override first
   if (allScores[spieltag] && allScores[spieltag][match.matchID]) {
     return allScores[spieltag][match.matchID];
   }
@@ -670,7 +404,6 @@ function switchTab(tab) {
   if (showST) buildSpieltagNav(tab);
   if (!tabLoaded[tab]) { tabLoaded[tab] = true; loadTab(tab); }
 }
-
 function buildSpieltagNav(tab) {
   const container = document.getElementById('st-buttons');
   container.innerHTML = '';
@@ -678,17 +411,10 @@ function buildSpieltagNav(tab) {
     const b = document.createElement('button');
     b.className = 'st-btn' + (i === currentSpieltag ? ' active' : '');
     b.textContent = i;
-    b.onclick = () => {
-      currentSpieltag = i;
-      tabLoaded[tab]  = false;
-      document.querySelectorAll('.st-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      loadTab(tab);
-    };
+    b.onclick = () => { currentSpieltag = i; tabLoaded[tab] = false; document.querySelectorAll('.st-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); loadTab(tab); };
     container.appendChild(b);
   }
 }
-
 async function loadTab(tab) {
   if      (tab === 'uebersicht')       await renderUebersicht();
   else if (tab === 'gesamt')           await renderRanking('gesamt', 1, 34);
@@ -696,7 +422,6 @@ async function loadTab(tab) {
   else if (tab === 'zweite-halbserie') await renderRanking('zweite-halbserie', 18, 34);
   else if (tab === 'tippen')           await renderTippen();
   else if (tab === 'maumau')           await renderMauMau();
-  else if (tab === 'kabinentalk')      await renderKabinentalk();
   else if (tab === 'admin')            renderAdmin();
 }
 
@@ -718,32 +443,45 @@ async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
   el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
   const matches = await fetchMatches(currentSpieltag);
+  await ensureAdminScores(currentSpieltag);
   await loadTipps(currentSpieltag);
+
+  // compute total pts for ranking
   const playerPts = await computeRankingPts(1, currentSpieltag);
-  const ranked = rankPlayers(playerPts);
+  const ranked    = rankPlayers(playerPts);
   const namedPlayers = assignFunNames(ranked);
+
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
+
   let html = '<div class="overview-wrap"><table class="overview-table">';
+  // Header: team names
   html += '<tr class="match-header"><th></th><th></th>';
-  matches.forEach(m => { html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`; });
+  matches.forEach(m => {
+    html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
+  });
   html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
+
+  // Score row
   html += '<tr class="match-header"><td></td><td></td>';
   matches.forEach(m => {
     const sc = getMatchScore(m, currentSpieltag);
-    html += `<td class="match-score">${sc ? sc.home+':'+sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+    html += `<td class="match-score">${sc ? sc.home + ':' + sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
   });
   html += '<td></td><td></td></tr>';
+
+  // Tipper rows
   namedPlayers.forEach((p, idx) => {
-    const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
     let stPts = 0;
     html += `<tr class="tipper-row">
       <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
       <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
     matches.forEach(m => {
-      const tip     = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+      const tip     = (allTipps[currentSpieltag][m.matchID] || {})[p.id];
       const sc      = getMatchScore(m, currentSpieltag);
       const kickoff = new Date(m.matchDateTimeUTC);
       const started = kickoff < new Date();
+      // Tip only visible if: own tip, OR match started/finished, OR admin
       const isOwn   = p.id === currentUser.id;
       const visible = isOwn || started || isAdmin;
       if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
@@ -751,38 +489,39 @@ async function renderUebersicht() {
       if (pts !== null) stPts += pts;
       let tipClass = 'tip-none';
       if (sc) {
-        if (tip.home==sc.home && tip.away==sc.away) tipClass='tip-correct';
-        else if (getTendency(tip.home,tip.away)===getTendency(sc.home,sc.away)) tipClass='tip-tend';
-        else tipClass='tip-wrong';
+        if (tip.home == sc.home && tip.away == sc.away) tipClass = 'tip-correct';
+        else if (getTendency(tip.home, tip.away) === getTendency(sc.home, sc.away)) tipClass = 'tip-tend';
+        else tipClass = 'tip-wrong';
       }
       const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
       let ptsHtml = '';
       if (pts !== null) {
-        const ptsClass = tip.joker ? (pts>0?'pts-joker-hit':'pts-joker-miss') : 'pts-normal';
-        const label    = tip.joker && pts===0 ? 'J' : (pts>0?'+'+pts:'0');
+        const ptsClass = tip.joker ? (pts > 0 ? 'pts-joker-hit' : 'pts-joker-miss') : 'pts-normal';
+        const label = tip.joker && pts === 0 ? 'J' : (pts > 0 ? '+'+pts : '0');
         ptsHtml = `<span class="${ptsClass}" style="font-size:10px;display:block">${label}</span>`;
       }
       html += `<td class="tip-cell"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
     });
-    const totalPts = playerPts[p.id]||0;
+    const totalPts = playerPts[p.id] || 0;
     html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
   });
   html += '</table></div>';
   el.innerHTML = html;
 }
 
-// ── RANKING ──
+// ── RANKING (Gesamt / Halbserien) ──
 async function computeRankingPts(fromST, toST) {
   const pts = {};
   allPlayers.forEach(p => { pts[p.id] = 0; });
   for (let st = fromST; st <= Math.min(toST, currentSpieltag); st++) {
     const matches = await fetchMatches(st);
+    await ensureAdminScores(st);
     await loadTipps(st);
     matches.forEach(m => {
       const sc = getMatchScore(m, st);
       if (!sc) return;
       allPlayers.forEach(p => {
-        const tip = (allTipps[st][m.matchID]||{})[p.id];
+        const tip = (allTipps[st][m.matchID] || {})[p.id];
         if (!tip) return;
         const p2 = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
         if (p2) pts[p.id] = (pts[p.id]||0) + p2;
@@ -792,8 +531,8 @@ async function computeRankingPts(fromST, toST) {
   return pts;
 }
 function rankPlayers(pts) {
-  return [...allPlayers].sort((a,b)=>(pts[b.id]||0)-(pts[a.id]||0))
-    .map(p=>({...p, pts: pts[p.id]||0}));
+  return [...allPlayers].sort((a,b) => (pts[b.id]||0) - (pts[a.id]||0))
+    .map(p => ({ ...p, pts: pts[p.id]||0 }));
 }
 async function renderRanking(tabId, fromST, toST) {
   const el = document.getElementById('tab-' + tabId);
@@ -803,7 +542,7 @@ async function renderRanking(tabId, fromST, toST) {
   const named  = assignFunNames(ranked);
   let html = '<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';
   html += '<tr class="match-header"><th style="width:36px"></th><th style="padding:8px 12px">Spieler</th><th style="text-align:right;padding:8px 12px">Punkte</th></tr>';
-  named.forEach((p,i) => {
+  named.forEach((p, i) => {
     const rc = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     html += `<tr class="tipper-row">
       <td class="rank-cell"><span class="${rc}">${i+1}</span></td>
@@ -822,23 +561,31 @@ async function renderTippen() {
   el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
   const matches = await fetchMatches(currentSpieltag);
   await loadTipps(currentSpieltag);
+  let jokerUsed = false;
+  allPlayers.forEach(p => {
+    if (p.id !== currentUser.id) return;
+    matches.forEach(m => {
+      const t = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+      if (t && t.joker) jokerUsed = true;
+    });
+  });
   let html = `<div class="tippen-wrap">
     <h2>Spieltag ${currentSpieltag} – Deine Tipps</h2>
     <div class="info-box">Du tippst als <strong>${currentUser.name}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
   matches.forEach(m => {
-    const myTip   = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
-    const kickoff = new Date(m.matchDateTimeUTC);
-    const started = kickoff < new Date();
-    const jChecked  = myTip.joker ? 'checked' : '';
-    const disabled  = started ? 'disabled' : '';
+    const myTip    = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
+    const kickoff  = new Date(m.matchDateTimeUTC);
+    const started  = kickoff < new Date();
+    const jChecked = myTip.joker ? 'checked' : '';
+    const disabled = started ? 'disabled' : '';
     const startedNote = started ? '<span style="color:var(--danger);font-size:11px;margin-left:8px">Spiel läuft/beendet</span>' : '';
     html += `<div class="match-card" id="card-${m.matchID}">
       <div class="teams">${m.team1.teamName} <span style="color:var(--muted)">vs</span> ${m.team2.teamName}${startedNote}</div>
       <div class="kickoff">${kickoff.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
       <div class="tip-inputs">
-        <input type="number" min="0" max="20" id="th-${m.matchID}" value="${myTip.home??''}" ${disabled} placeholder="–">
+        <input type="number" min="0" max="20" id="th-${m.matchID}" value="${myTip.home??''}" ${disabled} placeholder="–" style="width:52px">
         <span class="tip-sep">:</span>
-        <input type="number" min="0" max="20" id="ta-${m.matchID}" value="${myTip.away??''}" ${disabled} placeholder="–">
+        <input type="number" min="0" max="20" id="ta-${m.matchID}" value="${myTip.away??''}" ${disabled} placeholder="–" style="width:52px">
         <label class="joker-toggle ${myTip.joker?'active':''}">
           <input type="checkbox" id="tj-${m.matchID}" ${jChecked} ${disabled} onchange="onJokerChange(this,'${m.matchID}')"> 🃏 Joker
         </label>
@@ -853,25 +600,29 @@ async function renderTippen() {
 }
 function onJokerChange(cb, matchID) {
   if (!cb.checked) { cb.closest('.joker-toggle').classList.remove('active'); return; }
-  document.querySelectorAll('[id^="tj-"]').forEach(x => { if (x!==cb) { x.checked=false; x.closest('.joker-toggle').classList.remove('active'); } });
+  // Uncheck all others
+  document.querySelectorAll('[id^="tj-"]').forEach(x => { if (x !== cb) { x.checked = false; x.closest('.joker-toggle').classList.remove('active'); } });
   cb.closest('.joker-toggle').classList.add('active');
 }
 async function saveTipps(matchIDs) {
   const msg = document.getElementById('save-msg');
-  msg.className='msg msg-ok'; msg.textContent='Speichere…';
-  const rows = []; let jokerCount = 0;
+  msg.className = 'msg msg-ok'; msg.textContent = 'Speichere…';
+  const rows = [];
+  let jokerCount = 0;
   for (const mid of matchIDs) {
-    const h=document.getElementById('th-'+mid), a=document.getElementById('ta-'+mid), j=document.getElementById('tj-'+mid);
-    if (!h||h.disabled) continue;
-    if (h.value===''||a.value==='') continue;
-    if (j&&j.checked) jokerCount++;
-    rows.push({ player_id:currentUser.id, spieltag:currentSpieltag, match_id:mid, tip_home:parseInt(h.value), tip_away:parseInt(a.value), joker:j?j.checked:false });
+    const h = document.getElementById('th-'+mid);
+    const a = document.getElementById('ta-'+mid);
+    const j = document.getElementById('tj-'+mid);
+    if (!h || h.disabled) continue;
+    if (h.value === '' || a.value === '') continue;
+    if (j && j.checked) jokerCount++;
+    rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: parseInt(h.value), tip_away: parseInt(a.value), joker: j ? j.checked : false });
   }
-  if (jokerCount>1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
-  if (!db) { msg.textContent='Demo-Modus: Supabase nicht konfiguriert.'; return; }
+  if (jokerCount > 1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
+  if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
   const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
   if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+error.message; return; }
-  allTipps[currentSpieltag]=null;
+  allTipps[currentSpieltag] = null; // invalidate cache
   await loadTipps(currentSpieltag);
   msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
 }
@@ -879,27 +630,30 @@ async function saveTipps(matchIDs) {
 // ── MAYMAY ──
 async function renderMauMau() {
   const el = document.getElementById('tab-maumau');
-  if (!db) { el.innerHTML='<div class="loading">Supabase nicht konfiguriert.</div>'; return; }
-  const { data } = await db.from('maumau').select('*').order('created_at', { ascending:false });
-  maumauData = data||[];
+  if (!db) { el.innerHTML = '<div class="loading">Supabase nicht konfiguriert.</div>'; return; }
+  const { data } = await db.from('maumau').select('*').order('created_at', { ascending: false });
+  maumauData = data || [];
   let html = '<div class="maumau-wrap">';
   if (isAdmin) {
     html += `<div class="admin-section" style="margin-bottom:16px">
       <div class="form-row">
         <label>Spieler</label>
         <select id="mm-player">${allPlayers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
-        <label>Betrag (MMK)</label><input type="number" id="mm-amount" placeholder="z.B. 5" style="width:80px">
-        <label>Beschreibung</label><input type="text" id="mm-desc" placeholder="Grund" style="width:160px">
+        <label>Betrag (MMK)</label>
+        <input type="number" id="mm-amount" placeholder="z.B. 5" style="width:80px">
+        <label>Beschreibung</label>
+        <input type="text" id="mm-desc" placeholder="Grund" style="width:160px">
         <label>Typ</label>
         <select id="mm-type"><option value="zahlt">zahlt</option><option value="kassiert">kassiert</option></select>
         <button class="btn-primary" onclick="addMauMau()">+ Eintrag</button>
-      </div></div>`;
+      </div>
+    </div>`;
   }
   html += '<table class="maumau-table"><thead><tr><th>Spieler</th><th>Betrag</th><th>Typ</th><th>Beschreibung</th></tr></thead><tbody>';
   maumauData.forEach(row => {
-    const player = allPlayers.find(p=>p.id===row.player_id);
+    const player = allPlayers.find(p => p.id === row.player_id);
     html += `<tr>
-      <td>${player?player.name:row.player_id}</td>
+      <td>${player ? player.name : row.player_id}</td>
       <td style="font-family:'Barlow Condensed';font-weight:700">${row.amount} MMK</td>
       <td><span class="badge badge-${row.type}">${row.type}</span></td>
       <td style="color:var(--muted)">${row.description||''}</td>
@@ -909,11 +663,14 @@ async function renderMauMau() {
   el.innerHTML = html;
 }
 async function addMauMau() {
-  const pid=document.getElementById('mm-player').value, amount=parseFloat(document.getElementById('mm-amount').value),
-        desc=document.getElementById('mm-desc').value, type=document.getElementById('mm-type').value;
-  if (!pid||isNaN(amount)) return;
-  await db.from('maumau').insert({player_id:pid,amount,description:desc,type});
-  tabLoaded['maumau']=false; loadTab('maumau');
+  const pid    = document.getElementById('mm-player').value;
+  const amount = parseFloat(document.getElementById('mm-amount').value);
+  const desc   = document.getElementById('mm-desc').value;
+  const type   = document.getElementById('mm-type').value;
+  if (!pid || isNaN(amount)) return;
+  await db.from('maumau').insert({ player_id: pid, amount, description: desc, type });
+  tabLoaded['maumau'] = false;
+  loadTab('maumau');
 }
 
 // ── ADMIN ──
@@ -948,527 +705,85 @@ function renderAdmin() {
   loadAdminScores();
 }
 function renderPlayerList() {
-  return allPlayers.map(p=>`<div class="player-item">
+  return allPlayers.map(p => `<div class="player-item">
     <span class="pname">${p.name}</span>
     <span class="ppin">PIN: ${p.pin}</span>
     <button class="btn-danger" onclick="deletePlayer('${p.id}')">✕</button>
   </div>`).join('');
 }
 async function addPlayer() {
-  const name=document.getElementById('new-player-name').value.trim(), pin=document.getElementById('new-player-pin').value.trim();
-  if (!name||pin.length<4) { alert('Name und mind. 4-stellige PIN eingeben.'); return; }
+  const name = document.getElementById('new-player-name').value.trim();
+  const pin  = document.getElementById('new-player-pin').value.trim();
+  if (!name || pin.length < 4) { alert('Name und mind. 4-stellige PIN eingeben.'); return; }
   if (!db) { alert('Supabase nicht konfiguriert.'); return; }
-  await db.from('players').insert({name,pin});
+  await db.from('players').insert({ name, pin });
   await loadPlayers();
-  document.getElementById('player-list').innerHTML=renderPlayerList();
-  document.getElementById('new-player-name').value='';
-  document.getElementById('new-player-pin').value='';
+  document.getElementById('player-list').innerHTML = renderPlayerList();
+  document.getElementById('new-player-name').value = '';
+  document.getElementById('new-player-pin').value = '';
 }
 async function deletePlayer(id) {
   if (!confirm('Spieler wirklich löschen?')) return;
-  await db.from('players').delete().eq('id',id);
+  await db.from('players').delete().eq('id', id);
   await loadPlayers();
-  document.getElementById('player-list').innerHTML=renderPlayerList();
+  document.getElementById('player-list').innerHTML = renderPlayerList();
 }
 async function loadAdminScores() {
   const matches = await fetchMatches(currentSpieltag);
   const wrap = document.getElementById('admin-scores-wrap');
   if (!wrap) return;
+  // load existing overrides from DB (force-reload, bypassing cache)
   if (db) {
-    const { data } = await db.from('admin_scores').select('*').eq('spieltag',currentSpieltag);
-    if (!allScores[currentSpieltag]) allScores[currentSpieltag]={};
-    (data||[]).forEach(r=>{ allScores[currentSpieltag][r.match_id]={home:r.score_home,away:r.score_away}; });
+    allScores[currentSpieltag] = {}; // force fresh load
+    const { data } = await db.from('admin_scores').select('*').eq('spieltag', currentSpieltag);
+    (data||[]).forEach(r => { allScores[currentSpieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
   }
-  wrap.innerHTML = matches.map(m=>{
-    const sc=allScores[currentSpieltag]&&allScores[currentSpieltag][m.matchID];
-    const apiSc=getMatchScore(m,currentSpieltag);
+  wrap.innerHTML = matches.map(m => {
+    const sc = allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID];
+    const apiSc = getMatchScore(m, currentSpieltag);
+    const hasOverride = sc && (!apiSc || sc.home !== apiSc.home || sc.away !== apiSc.away);
     return `<div class="score-item">
       <span class="match-label">${m.team1.shortName} vs ${m.team2.shortName}</span>
       <input type="number" id="ah-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.home:'-'}" value="${sc?sc.home:''}">
       <span style="color:var(--muted)">:</span>
       <input type="number" id="aa-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.away:'-'}" value="${sc?sc.away:''}">
-      <button class="btn-danger" onclick="deleteAdminScore(${m.matchID})" style="padding:4px 8px;font-size:11px">✕</button>
+      <button class="btn-danger" onclick="deleteAdminScore(${m.matchID})" title="Manuelles Ergebnis löschen" style="padding:4px 8px;font-size:11px">✕</button>
     </div>`;
   }).join('');
 }
 async function deleteAdminScore(matchID) {
   if (!confirm('Manuelles Ergebnis löschen? Danach gilt wieder das API-Ergebnis.')) return;
-  if (db) await db.from('admin_scores').delete().eq('spieltag',currentSpieltag).eq('match_id',matchID);
+  if (db) await db.from('admin_scores').delete().eq('spieltag', currentSpieltag).eq('match_id', matchID);
   if (allScores[currentSpieltag]) delete allScores[currentSpieltag][matchID];
-  const h=document.getElementById('ah-'+matchID), a=document.getElementById('aa-'+matchID);
-  if (h) h.value=''; if (a) a.value='';
-  const msg=document.getElementById('scores-msg');
+  // clear inputs
+  const h = document.getElementById('ah-'+matchID);
+  const a = document.getElementById('aa-'+matchID);
+  if (h) h.value = '';
+  if (a) a.value = '';
+  const msg = document.getElementById('scores-msg');
   msg.className='msg msg-ok'; msg.textContent='✅ Manuelles Ergebnis gelöscht!';
 }
 async function saveAdminScores() {
-  const matches=await fetchMatches(currentSpieltag);
-  if (!db) { alert('Supabase nicht konfiguriert.'); return; }
-  const rows=[];
-  matches.forEach(m=>{
-    const h=document.getElementById('ah-'+m.matchID), a=document.getElementById('aa-'+m.matchID);
-    if (!h||h.value==='') return;
-    rows.push({spieltag:currentSpieltag,match_id:m.matchID,score_home:parseInt(h.value),score_away:parseInt(a.value)});
+  const matches = await fetchMatches(currentSpieltag);
+  if (!allScores[currentSpieltag]) allScores[currentSpieltag] = {};
+  const rows = [];
+  matches.forEach(m => {
+    const h = document.getElementById('ah-'+m.matchID);
+    const a = document.getElementById('aa-'+m.matchID);
+    if (h && h.value !== '' && a && a.value !== '') {
+      allScores[currentSpieltag][m.matchID] = { home: parseInt(h.value), away: parseInt(a.value) };
+      rows.push({ spieltag: currentSpieltag, match_id: m.matchID, score_home: parseInt(h.value), score_away: parseInt(a.value) });
+    }
   });
-  await db.from('admin_scores').upsert(rows,{onConflict:'spieltag,match_id'});
-  if (!allScores[currentSpieltag]) allScores[currentSpieltag]={};
-  rows.forEach(r=>{ allScores[currentSpieltag][r.match_id]={home:r.score_home,away:r.score_away}; });
-  const msg=document.getElementById('scores-msg');
+  if (db && rows.length) await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
+  const msg = document.getElementById('scores-msg');
   msg.className='msg msg-ok'; msg.textContent='✅ Ergebnisse gespeichert!';
-  tabLoaded['uebersicht']=false;
 }
 function setCurrentSpieltag() {
-  const v=parseInt(document.getElementById('admin-spieltag').value);
-  if (v>=1&&v<=34) { currentSpieltag=v; }
+  currentSpieltag = parseInt(document.getElementById('admin-spieltag').value);
+  tabLoaded = {};
+  switchTab('uebersicht');
 }
-
-// ═══════════════════════════════════════════════════════════
-//  KABINENTALK
-// ═══════════════════════════════════════════════════════════
-
-let kabPosts         = [];
-let kabFilter        = 'all';
-let kabWillPin       = false;
-let kabActivePopup   = null;
-const KAB_REACT_EMOJIS = ['👍','❤️','😂','🔥','👏','⚽','🎯','🤦'];
-
-// ── Initialen aus Namen ──────────────────────────────────
-function kabInitials(name) {
-  return (name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-}
-
-// ── Badge-Zähler im Tab ──────────────────────────────────
-async function kabUpdateBadge() {
-  if (!db) return;
-  const since = Date.now() - 1000*60*60*24; // letzte 24h
-  const { count } = await db.from('kabinentalk')
-    .select('id', { count:'exact', head:true })
-    .gt('created_at', new Date(since).toISOString());
-  const badge = document.getElementById('kab-badge');
-  if (!badge) return;
-  if (count > 0) { badge.textContent=count; badge.style.display='inline-block'; }
-  else           { badge.style.display='none'; }
-}
-
-// ── Posts laden ──────────────────────────────────────────
-async function kabLoadPosts() {
-  if (!db) {
-    kabPosts = kabDemoSeed();
-    return;
-  }
-  const { data: posts } = await db.from('kabinentalk')
-    .select('*, kabinentalk_comments(id, author_id, author_name, body, created_at)')
-    .order('pinned', { ascending: false })
-    .order('created_at', { ascending: false });
-  kabPosts = (posts||[]).map(p => ({
-    ...p,
-    likes:     Array.isArray(p.likes)     ? p.likes     : (JSON.parse(p.likes||'[]')),
-    reactions: typeof p.reactions==='object' ? p.reactions : (JSON.parse(p.reactions||'{}')),
-    comments:  (p.kabinentalk_comments||[]).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
-  }));
-}
-
-function kabDemoSeed() {
-  return [
-    { id:'d1', author_id:'admin', author_name:'Admin', body:'📣 Willkommen im Kabinentalk!\n\nHier könnt ihr euch austauschen, Meinungen teilen und natürlich gegenseitig aufziehen. Viel Spaß! ⚽', pinned:true, likes:[], reactions:{'🔥':['MK']}, comments:[], created_at: new Date(Date.now()-600000).toISOString() },
-    { id:'d2', author_id:'u1', author_name:'Marcel K.', body:'Kann mir jemand erklären, wie Thorsten schon wieder auf Platz 1 ist? 🤦 Das ist statistisch unmöglich!', pinned:false, likes:['TH'], reactions:{'😂':['TH','JB']}, comments:[{id:'c1',author_id:'u2',author_name:'Thorsten H.',body:'Talent, Marcel. Einfach Talent. 😎',created_at:new Date(Date.now()-300000).toISOString()}], created_at: new Date(Date.now()-3600000).toISOString() }
-  ];
-}
-
-// ── Zeitanzeige ──────────────────────────────────────────
-function kabTimeAgo(isoStr) {
-  const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
-  if (diff <  60) return 'gerade eben';
-  if (diff < 3600) return `vor ${Math.floor(diff/60)} Min.`;
-  if (diff < 86400) return `vor ${Math.floor(diff/3600)} Std.`;
-  return `vor ${Math.floor(diff/86400)} Tagen`;
-}
-
-function kabEsc(str) {
-  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Haupt-Render ─────────────────────────────────────────
-async function renderKabinentalk() {
-  const el = document.getElementById('tab-kabinentalk');
-  el.innerHTML = '<div class="loading">Lade Kabinentalk</div>';
-  await kabLoadPosts();
-
-  const role   = isAdmin ? 'admin' : 'user';
-  const initials = kabInitials(currentUser.name);
-  const avatarCls = isAdmin ? 'kab-avatar admin' : 'kab-avatar';
-
-  let html = `<div class="kab-wrap">
-    <!-- Compose -->
-    <div class="kab-compose" id="kab-compose">
-      <div class="kab-compose-row">
-        <div class="${avatarCls}" id="kab-my-avatar">${initials}</div>
-        <textarea class="kab-textarea" id="kab-input"
-          placeholder="Was geht in der Kabine ab? ⚽"
-          maxlength="500" rows="3"></textarea>
-      </div>
-      <div class="kab-epicker" id="kab-epicker">
-        ${KAB_REACT_EMOJIS.concat(['💪','😤','🫡','🤌','🏆','😅']).map(e=>`<span class="kab-eopt">${e}</span>`).join('')}
-      </div>
-      <div class="kab-toolbar">
-        <button class="kab-emoji-btn" id="kab-emoji-toggle">😄</button>
-        ${isAdmin ? `<button class="kab-pin-btn" id="kab-pin-toggle" title="Anpinnen">📌</button>` : ''}
-        <span class="kab-charcount" id="kab-charcount">0 / 500</span>
-        <button class="kab-send" id="kab-send" disabled>Posten →</button>
-      </div>
-    </div>
-    <!-- Filter pills -->
-    <div class="kab-filters">
-      <button class="kab-pill active" data-kabf="all">🗒 Alle</button>
-      <button class="kab-pill" data-kabf="admin">📣 Admin</button>
-      <button class="kab-pill" data-kabf="pinned">📌 Gepinnt</button>
-      <button class="kab-pill" data-kabf="user">👤 Mitglieder</button>
-    </div>
-    <!-- Feed -->
-    <div id="kab-feed"></div>
-  </div>`;
-
-  el.innerHTML = html;
-  kabRenderFeed();
-  kabBindCompose();
-}
-
-// ── Feed rendern ─────────────────────────────────────────
-function kabRenderFeed() {
-  const feed = document.getElementById('kab-feed');
-  if (!feed) return;
-  feed.innerHTML = '';
-
-  let filtered = kabPosts.filter(p => {
-    if (kabFilter==='admin')  return p.author_id==='admin' || (allPlayers.find(x=>x.id===p.author_id)?.name==='Admin');
-    if (kabFilter==='pinned') return p.pinned;
-    if (kabFilter==='user')   return p.author_id!=='admin';
-    return true;
-  });
-
-  if (!filtered.length) {
-    feed.innerHTML = `<div class="kab-empty"><div class="icon">🏟️</div><p>Noch keine Posts hier.<br>Sei der Erste – die Kabine wartet!</p></div>`;
-    return;
-  }
-
-  let lastPinned = null;
-  filtered.forEach((post, i) => {
-    if (i===0 && post.pinned) {
-      const lbl = document.createElement('div');
-      lbl.className='kab-section-label'; lbl.textContent='📌 Angepinnte Beiträge';
-      feed.appendChild(lbl);
-    }
-    if (lastPinned===true && !post.pinned) {
-      const lbl=document.createElement('div');
-      lbl.className='kab-section-label'; lbl.textContent='💬 Aktuell';
-      feed.appendChild(lbl);
-    }
-    lastPinned = post.pinned;
-    const card = kabBuildCard(post);
-    card.style.animationDelay = `${i*35}ms`;
-    feed.appendChild(card);
-  });
-}
-
-// ── Einzelne Karte bauen ─────────────────────────────────
-function kabBuildCard(post) {
-  const isAdminPost = post.author_id==='admin';
-  const myId        = currentUser.id;
-  const iLiked      = (post.likes||[]).includes(myId);
-  const likeCount   = (post.likes||[]).length;
-  const initials    = kabInitials(post.author_name);
-  const avatarCls   = isAdminPost ? 'kab-avatar admin' : 'kab-avatar';
-
-  const card = document.createElement('div');
-  card.className = `kab-card${isAdminPost?' kab-admin-card':''}${post.pinned?' kab-pinned-card':''}`;
-  card.dataset.id = post.id;
-
-  // Reactions HTML
-  const reactHTML = Object.entries(post.reactions||{}).map(([emoji, users])=>{
-    const active = (users||[]).includes(myId);
-    return `<button class="kab-react-chip${active?' active':''}" data-emoji="${emoji}">
-      ${emoji}<span class="rcount">${(users||[]).length}</span>
-    </button>`;
-  }).join('');
-
-  // Comments HTML
-  const commHTML = (post.comments||[]).map(c=>{
-    const ci = kabInitials(c.author_name);
-    return `<div class="kab-comment">
-      <div class="kab-avatar">${ci}</div>
-      <div class="kab-comment-bubble">
-        <div class="kab-comment-author">${kabEsc(c.author_name)}</div>
-        ${kabEsc(c.body)}
-      </div>
-    </div>`;
-  }).join('');
-
-  const commLabel = (post.comments||[]).length > 0
-    ? `💬 ${(post.comments||[]).length}`
-    : '💬 Kommentieren';
-
-  card.innerHTML = `
-    ${post.pinned ? `<div class="kab-pinned-banner">📌 <strong>Angepinnt</strong></div>` : ''}
-    <div class="kab-card-header">
-      <div class="${avatarCls}">${initials}</div>
-      <div class="kab-card-meta">
-        <div class="kab-author${isAdminPost?' admin-author':''}">
-          ${kabEsc(post.author_name)}
-          <span class="kab-role ${isAdminPost?'admin':'user'}">${isAdminPost?'Admin':'Mitglied'}</span>
-          ${post.pinned?'<span style="font-size:.8rem">📌</span>':''}
-        </div>
-        <div class="kab-time">${kabTimeAgo(post.created_at)}</div>
-      </div>
-    </div>
-    <div class="kab-body">${kabEsc(post.body)}</div>
-    <div class="kab-reactions" id="kreact-${post.id}">${reactHTML}</div>
-    <div class="kab-actions">
-      <button class="kab-act kab-like-btn${iLiked?' liked':''}" data-id="${post.id}">
-        ${iLiked?'❤️':'🤍'} ${likeCount>0?likeCount:'Gefällt mir'}
-      </button>
-      <button class="kab-act kab-comm-toggle" data-id="${post.id}">${commLabel}</button>
-      <button class="kab-act kab-react-btn" data-id="${post.id}">😄 Reaktion</button>
-      ${(isAdmin && post.id.length > 5) ? `<button class="kab-act kab-del-btn" data-id="${post.id}" style="flex:0;color:var(--danger)">🗑</button>` : ''}
-    </div>
-    <div class="kab-comments" id="kcomm-${post.id}">
-      ${commHTML}
-      <div class="kab-comment-input-row">
-        <div class="${avatarCls}" style="width:28px;height:28px;font-size:10px">${kabInitials(currentUser.name)}</div>
-        <input class="kab-comment-input" placeholder="Antworten…" data-id="${post.id}">
-        <button class="kab-comment-send" data-id="${post.id}">↑</button>
-      </div>
-    </div>`;
-
-  // Events
-  card.querySelector('.kab-like-btn').addEventListener('click', () => kabToggleLike(post.id));
-  card.querySelector('.kab-comm-toggle').addEventListener('click', () => {
-    const box = document.getElementById('kcomm-'+post.id);
-    box.classList.toggle('open');
-    if (box.classList.contains('open')) box.querySelector('.kab-comment-input')?.focus();
-  });
-  card.querySelector('.kab-react-btn').addEventListener('click', e => kabShowReactPopup(e, post.id));
-  card.querySelectorAll('.kab-react-chip').forEach(chip => {
-    chip.addEventListener('click', () => kabToggleReaction(post.id, chip.dataset.emoji));
-  });
-  card.querySelector('.kab-comment-send').addEventListener('click', () => kabSubmitComment(post.id, card));
-  card.querySelector('.kab-comment-input').addEventListener('keydown', e => {
-    if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); kabSubmitComment(post.id, card); }
-  });
-  const delBtn = card.querySelector('.kab-del-btn');
-  if (delBtn) delBtn.addEventListener('click', () => kabDeletePost(post.id));
-
-  return card;
-}
-
-// ── Compose binden ───────────────────────────────────────
-function kabBindCompose() {
-  const input  = document.getElementById('kab-input');
-  const send   = document.getElementById('kab-send');
-  const count  = document.getElementById('kab-charcount');
-  const toggle = document.getElementById('kab-emoji-toggle');
-  const picker = document.getElementById('kab-epicker');
-  const pinBtn = document.getElementById('kab-pin-toggle');
-
-  if (!input) return;
-
-  input.addEventListener('input', () => {
-    const l = input.value.length;
-    count.textContent = `${l} / 500`;
-    send.disabled = l === 0;
-  });
-
-  toggle?.addEventListener('click', () => picker.classList.toggle('open'));
-
-  document.querySelectorAll('.kab-eopt').forEach(e => {
-    e.addEventListener('click', () => {
-      const pos = input.selectionStart;
-      input.value = input.value.slice(0,pos) + e.textContent + input.value.slice(pos);
-      input.dispatchEvent(new Event('input'));
-      input.focus();
-    });
-  });
-
-  pinBtn?.addEventListener('click', () => {
-    kabWillPin = !kabWillPin;
-    pinBtn.classList.toggle('active', kabWillPin);
-  });
-
-  document.querySelectorAll('.kab-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.kab-pill').forEach(p=>p.classList.remove('active'));
-      pill.classList.add('active');
-      kabFilter = pill.dataset.kabf;
-      kabRenderFeed();
-    });
-  });
-
-  send.addEventListener('click', kabSendPost);
-}
-
-// ── Post senden ──────────────────────────────────────────
-async function kabSendPost() {
-  const input = document.getElementById('kab-input');
-  const body  = input.value.trim();
-  if (!body) return;
-
-  const newPost = {
-    author_id:   currentUser.id,
-    author_name: currentUser.name,
-    body,
-    pinned:      kabWillPin,
-    reactions:   {},
-    likes:       []
-  };
-
-  if (db) {
-    const { data, error } = await db.from('kabinentalk').insert(newPost).select().single();
-    if (error) { kabShowToast('❌ Fehler: ' + error.message); return; }
-    kabPosts.unshift({ ...data, likes:[], reactions:{}, comments:[] });
-  } else {
-    kabPosts.unshift({ ...newPost, id:'local_'+Date.now(), created_at:new Date().toISOString(), comments:[] });
-  }
-
-  input.value = '';
-  document.getElementById('kab-charcount').textContent = '0 / 500';
-  document.getElementById('kab-send').disabled = true;
-  kabWillPin = false;
-  document.getElementById('kab-pin-toggle')?.classList.remove('active');
-  document.getElementById('kab-epicker')?.classList.remove('open');
-  kabRenderFeed();
-  kabShowToast('✅ Post ist live!');
-  kabUpdateBadge();
-}
-
-// ── Like togglen ─────────────────────────────────────────
-async function kabToggleLike(postId) {
-  const post = kabPosts.find(p=>p.id===postId);
-  if (!post) return;
-  const idx = post.likes.indexOf(currentUser.id);
-  if (idx===-1) post.likes.push(currentUser.id);
-  else          post.likes.splice(idx,1);
-  if (db) {
-    await db.from('kabinentalk').update({ likes: JSON.stringify(post.likes) }).eq('id', postId);
-  }
-  kabRenderFeed();
-  // re-open comment thread if it was open
-  const box = document.getElementById('kcomm-'+postId);
-  if (box?.classList.contains('open')) box.classList.add('open');
-}
-
-// ── Reaktion togglen ─────────────────────────────────────
-async function kabToggleReaction(postId, emoji) {
-  const post = kabPosts.find(p=>p.id===postId);
-  if (!post) return;
-  if (!post.reactions[emoji]) post.reactions[emoji]=[];
-  const arr = post.reactions[emoji];
-  const idx = arr.indexOf(currentUser.id);
-  if (idx===-1) arr.push(currentUser.id);
-  else          arr.splice(idx,1);
-  if (!arr.length) delete post.reactions[emoji];
-  if (db) {
-    await db.from('kabinentalk').update({ reactions: post.reactions }).eq('id', postId);
-  }
-  // Update nur die Reaktions-Row – kein komplettes Re-Render
-  const wrap = document.getElementById('kreact-'+postId);
-  if (wrap) {
-    wrap.innerHTML = Object.entries(post.reactions).map(([e,users])=>{
-      const active=(users||[]).includes(currentUser.id);
-      return `<button class="kab-react-chip${active?' active':''}" onclick="kabToggleReaction('${postId}','${e}')">${e}<span class="rcount">${(users||[]).length}</span></button>`;
-    }).join('');
-  }
-}
-
-// ── Kommentar senden ─────────────────────────────────────
-async function kabSubmitComment(postId, card) {
-  const input = card.querySelector('.kab-comment-input');
-  const body  = (input?.value||'').trim();
-  if (!body) return;
-  const comment = {
-    post_id:     postId,
-    author_id:   currentUser.id,
-    author_name: currentUser.name,
-    body,
-    created_at:  new Date().toISOString()
-  };
-  const post = kabPosts.find(p=>p.id===postId);
-  if (post) { if (!post.comments) post.comments=[]; post.comments.push(comment); }
-  if (db) {
-    await db.from('kabinentalk_comments').insert(comment);
-  }
-  if (input) input.value='';
-  // Re-render only this card's comment area
-  const box = document.getElementById('kcomm-'+postId);
-  if (box) {
-    const commDiv = box.querySelectorAll('.kab-comment');
-    commDiv.forEach(c=>c.remove());
-    const inputRow = box.querySelector('.kab-comment-input-row');
-    (post?.comments||[]).forEach(c=>{
-      const ci=kabInitials(c.author_name);
-      const div=document.createElement('div');
-      div.className='kab-comment';
-      div.innerHTML=`<div class="kab-avatar">${ci}</div><div class="kab-comment-bubble"><div class="kab-comment-author">${kabEsc(c.author_name)}</div>${kabEsc(c.body)}</div>`;
-      box.insertBefore(div, inputRow);
-    });
-    box.classList.add('open');
-    // Update comment button label
-    const btn = card.querySelector('.kab-comm-toggle');
-    if (btn) btn.textContent = `💬 ${(post?.comments||[]).length}`;
-  }
-}
-
-// ── Post löschen (Admin) ─────────────────────────────────
-async function kabDeletePost(postId) {
-  if (!confirm('Post wirklich löschen?')) return;
-  if (db) await db.from('kabinentalk').delete().eq('id', postId);
-  kabPosts = kabPosts.filter(p=>p.id!==postId);
-  kabRenderFeed();
-  kabShowToast('🗑 Post gelöscht');
-  kabUpdateBadge();
-}
-
-// ── Reaktions-Popup ──────────────────────────────────────
-function kabShowReactPopup(e, postId) {
-  if (kabActivePopup) { kabActivePopup.remove(); kabActivePopup=null; return; }
-  const popup = document.createElement('div');
-  popup.className = 'kab-react-popup';
-  KAB_REACT_EMOJIS.forEach(emoji => {
-    const btn = document.createElement('button');
-    btn.textContent = emoji;
-    btn.addEventListener('click', () => {
-      kabToggleReaction(postId, emoji);
-      popup.remove(); kabActivePopup=null;
-    });
-    popup.appendChild(btn);
-  });
-  const rect   = e.target.getBoundingClientRect();
-  const bottom = window.innerHeight - rect.top + 8;
-  const left   = Math.min(rect.left, window.innerWidth - 260);
-  popup.style.cssText += `;bottom:${bottom}px;left:${left}px`;
-  document.body.appendChild(popup);
-  kabActivePopup = popup;
-  setTimeout(()=>{
-    document.addEventListener('click', function h(){
-      popup.remove(); kabActivePopup=null; document.removeEventListener('click',h);
-    }, {once:true});
-  }, 60);
-}
-
-// ── Toast ────────────────────────────────────────────────
-function kabShowToast(msg) {
-  const t = document.getElementById('kab-toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2500);
-}
-
-// ── Timestamps live aktualisieren ────────────────────────
-setInterval(()=>{
-  document.querySelectorAll('.kab-time').forEach(el=>{
-    const card = el.closest('.kab-card');
-    if (!card) return;
-    const post = kabPosts.find(p=>p.id===card.dataset.id);
-    if (post) el.textContent = kabTimeAgo(post.created_at);
-  });
-}, 30000);
 </script>
 </body>
 </html>
