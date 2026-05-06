@@ -496,15 +496,8 @@ async function loadTipps(spieltag) {
 // ── Toggle Paarungen Columns ──
 function toggleMatches() {
   matchesExpanded = !matchesExpanded;
-  const tbl  = document.getElementById('overview-table-main');
-  const wrap = document.getElementById('overview-wrap-main');
-  const btn  = document.getElementById('toggle-matches-btn');
-  if (tbl)  tbl.classList.toggle('collapsed', !matchesExpanded);
-  if (wrap) wrap.classList.toggle('is-collapsed', !matchesExpanded);
-  if (btn) {
-    btn.textContent = matchesExpanded ? '− Paarungen' : '＋ Paarungen';
-    btn.classList.toggle('expanded', matchesExpanded);
-  }
+  tabLoaded['uebersicht'] = false;
+  loadTab('uebersicht');
 }
 // ── ÜBERSICHT ──
 async function renderUebersicht() {
@@ -522,67 +515,91 @@ async function renderUebersicht() {
 
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
-  const collapsedClass = matchesExpanded ? '' : 'collapsed';
-  let html = `<div class="overview-wrap ${matchesExpanded ? '' : 'is-collapsed'}" id="overview-wrap-main">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <button id="toggle-matches-btn" class="toggle-matches-btn ${matchesExpanded?'expanded':''}" onclick="toggleMatches()">
-        ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
-      </button>
-      <span style="font-size:11px;color:var(--muted);">${matchesExpanded ? 'Alle Spalten sichtbar' : 'Paarungen ausgeblendet'}</span>
-    </div>
-  <table id="overview-table-main" class="overview-table ${collapsedClass}">`;
-  // Header: team names
-  html += '<tr class="match-header"><th></th><th></th>';
-  matches.forEach(m => {
-    html += `<th class="match-col match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
-  });
-  html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
+  const toggleBtn = `<div style="padding:12px 16px 4px">
+    <button id="toggle-matches-btn" class="toggle-matches-btn${matchesExpanded?' expanded':''}" onclick="toggleMatches()">
+      ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
+    </button>
+  </div>`;
 
-  // Score row
-  html += '<tr class="match-header"><td></td><td></td>';
-  matches.forEach(m => {
-    const sc = getMatchScore(m, currentSpieltag);
-    html += `<td class="match-col match-score">${sc ? sc.home + ':' + sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
-  });
-  html += '<td></td><td></td></tr>';
+  let html;
 
-  // Tipper rows
-  namedPlayers.forEach((p, idx) => {
-    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
-    let stPts = 0;
-    html += `<tr class="tipper-row">
-      <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
-      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
-    matches.forEach(m => {
-      const tip     = (allTipps[currentSpieltag][m.matchID] || {})[p.id];
-      const sc      = getMatchScore(m, currentSpieltag);
-      const kickoff = new Date(m.matchDateTimeUTC);
-      const started = kickoff < new Date();
-      // Tip visible if: own tip, match started/finished, admin, OR score already entered
-      const isOwn   = p.id === currentUser.id;
-      const visible = isOwn || started || isAdmin || sc !== null;
-      if (!tip || !visible) { html += '<td class="match-col tip-cell"><span class="tip-none">–</span></td>'; return; }
-      const pts = sc !== null ? calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker) : null;
-      if (pts !== null) stPts += pts;
-      let tipClass = 'tip-none';
-      if (sc) {
-        if (tip.home == sc.home && tip.away == sc.away) tipClass = 'tip-correct';
-        else if (getTendency(tip.home, tip.away) === getTendency(sc.home, sc.away)) tipClass = 'tip-tend';
-        else tipClass = 'tip-wrong';
-      }
-      const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
-      let ptsHtml = '';
-      if (pts !== null) {
-        const ptsClass = tip.joker ? (pts > 0 ? 'pts-joker-hit' : 'pts-joker-miss') : 'pts-normal';
-        const label = tip.joker && pts === 0 ? '🃏' : (pts > 0 ? '+'+pts : '0');
-        ptsHtml = `<span class="${ptsClass}" style="font-size:10px;margin-left:3px;font-weight:600">${label}</span>`;
-      }
-      html += `<td class="match-col tip-cell" style="white-space:nowrap"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+  if (!matchesExpanded) {
+    // ── COLLAPSED: einfache 4-Spalten-Tabelle, passt auf jedes Handy ──
+    html = '<div id="overview-wrap-main" style="padding:0">' + toggleBtn;
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html += '<tr class="match-header"><th style="width:28px"></th><th style="padding:8px 10px;text-align:left">Spieler</th><th style="text-align:right;padding:8px 6px;font-size:11px;color:var(--muted)">Spielt.</th><th style="text-align:right;padding:8px 10px;font-size:11px;color:var(--muted)">Ges.</th></tr>';
+    namedPlayers.forEach((p, idx) => {
+      const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+      let stPts = 0;
+      matches.forEach(m => {
+        const tip = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+        const sc  = getMatchScore(m, currentSpieltag);
+        if (tip && sc !== null) { const pts = calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker); if (pts) stPts += pts; }
+      });
+      const totalPts = playerPts[p.id] || 0;
+      html += `<tr class="tipper-row">
+        <td class="rank-cell" style="width:28px"><span class="${rankClass}">${idx+1}</span></td>
+        <td class="name-cell" style="padding:0 10px"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
+        <td class="sum-cell" style="padding-right:8px">${stPts}</td>
+        <td class="total-cell" style="padding-right:12px">${totalPts}</td>
+      </tr>`;
     });
-    const totalPts = playerPts[p.id] || 0;
-    html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
-  });
-  html += '</table></div>';
+    html += '</table></div>';
+  } else {
+    // ── EXPANDED: volle Match-Tabelle ──
+    html = '<div class="overview-wrap" id="overview-wrap-main">' + toggleBtn;
+    html += '<div style="overflow-x:auto"><table id="overview-table-main" class="overview-table">';
+    // Header: team names
+    html += '<tr class="match-header"><th></th><th></th>';
+    matches.forEach(m => {
+      html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
+    });
+    html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
+    // Score row
+    html += '<tr class="match-header"><td></td><td></td>';
+    matches.forEach(m => {
+      const sc = getMatchScore(m, currentSpieltag);
+      html += `<td class="match-score">${sc ? sc.home+':'+sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+    });
+    html += '<td></td><td></td></tr>';
+    // Tipper rows
+    namedPlayers.forEach((p, idx) => {
+      const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+      let stPts = 0;
+      html += `<tr class="tipper-row">
+        <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
+        <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+      matches.forEach(m => {
+        const tip     = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
+        const sc      = getMatchScore(m, currentSpieltag);
+        const kickoff = new Date(m.matchDateTimeUTC);
+        const started = kickoff < new Date();
+        const isOwn   = p.id === currentUser.id;
+        const visible = isOwn || started || isAdmin || sc !== null;
+        if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
+        const pts = sc !== null ? calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker) : null;
+        if (pts !== null) stPts += pts;
+        let tipClass = 'tip-none';
+        if (sc) {
+          if (tip.home==sc.home && tip.away==sc.away) tipClass='tip-correct';
+          else if (getTendency(tip.home,tip.away)===getTendency(sc.home,sc.away)) tipClass='tip-tend';
+          else tipClass='tip-wrong';
+        }
+        const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
+        let ptsHtml = '';
+        if (pts !== null) {
+          const ptsClass = tip.joker?(pts>0?'pts-joker-hit':'pts-joker-miss'):'pts-normal';
+          const label = tip.joker&&pts===0?'🃏':(pts>0?'+'+pts:'0');
+          ptsHtml = `<span class="${ptsClass}" style="font-size:10px;margin-left:3px;font-weight:600">${label}</span>`;
+        }
+        html += `<td class="tip-cell" style="white-space:nowrap"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+      });
+      const totalPts = playerPts[p.id] || 0;
+      html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
+    });
+    html += '</table></div></div>';
+  }
+  // (single closing tag for collapsed path already included above)
   el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden. Bitte Seite neu laden.<br><small>' + e.message + '</small></div>';
@@ -594,21 +611,26 @@ async function renderUebersicht() {
 async function computeRankingPts(fromST, toST) {
   const pts = {};
   allPlayers.forEach(p => { pts[p.id] = 0; });
-  for (let st = fromST; st <= Math.min(toST, currentSpieltag); st++) {
-    const matches = await fetchMatches(st);
-    await ensureAdminScores(st);
-    await loadTipps(st);
+  const limit = Math.min(toST, currentSpieltag);
+  const spieltags = [];
+  for (let st = fromST; st <= limit; st++) spieltags.push(st);
+  // Fetch all match data in parallel (OpenLigaDB)
+  await Promise.all(spieltags.map(st => fetchMatches(st)));
+  // tipps + adminScores already bulk-loaded at boot; ensure cache filled
+  await Promise.all(spieltags.map(st => Promise.all([loadTipps(st), ensureAdminScores(st)])));
+  spieltags.forEach(st => {
+    const matches = allMatches[st] || [];
     matches.forEach(m => {
       const sc = getMatchScore(m, st);
       if (!sc) return;
       allPlayers.forEach(p => {
-        const tip = (allTipps[st][m.matchID] || {})[p.id];
+        const tip = (allTipps[st] && allTipps[st][m.matchID] && allTipps[st][m.matchID][p.id]);
         if (!tip) return;
         const p2 = calcPoints(tip.home, tip.away, sc.home, sc.away, tip.joker);
         if (p2) pts[p.id] = (pts[p.id]||0) + p2;
       });
     });
-  }
+  });
   return pts;
 }
 function rankPlayers(pts) {
@@ -660,13 +682,18 @@ async function renderTippen() {
     <div class="info-box">Du tippst als <strong>${currentUser.name}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
   matches.forEach(m => {
     const myTip    = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
-    const kickoff  = new Date(m.matchDateTimeUTC);
-    const started  = kickoff < new Date();
-    const jChecked = myTip.joker ? 'checked' : '';
-    const disabled = started ? 'disabled' : '';
-    const startedNote = started ? '<span style="color:var(--danger);font-size:11px;margin-left:8px">Spiel läuft/beendet</span>' : '';
+    const kickoff   = new Date(m.matchDateTimeUTC);
+    const started   = kickoff < new Date();
+    const hasResult = !!(allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID]);
+    const locked    = started || hasResult;
+    const jChecked  = myTip.joker ? 'checked' : '';
+    const disabled  = locked ? 'disabled' : '';
+    const lockNote  = locked
+      ? (hasResult ? '<span style="color:var(--accent);font-size:11px;margin-left:8px">✓ Ergebnis steht fest</span>'
+                   : '<span style="color:var(--danger);font-size:11px;margin-left:8px">Spiel läuft/beendet</span>')
+      : '';
     html += `<div class="match-card" id="card-${m.matchID}">
-      <div class="teams">${m.team1.teamName} <span style="color:var(--muted)">vs</span> ${m.team2.teamName}${startedNote}</div>
+      <div class="teams">${m.team1.teamName} <span style="color:var(--muted)">vs</span> ${m.team2.teamName}${lockNote}</div>
       <div class="kickoff">${kickoff.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
       <div class="tip-inputs">
         <input type="number" min="0" max="20" id="th-${m.matchID}" value="${myTip.home??''}" ${disabled} placeholder="–" style="width:52px">
