@@ -634,7 +634,7 @@ async function renderStatistik() {
     allPlayers.forEach(p => { totals[p.id] = stArr.reduce((s, st) => s + (ptsPerST[p.id][st] || 0), 0); });
     const sortedPlayers = [...allPlayers].sort((a, b) => totals[b.id] - totals[a.id]);
 
-    // ── Saisonsiege: welcher Spieler hat einen Spieltag gewonnen (meiste Punkte diesen ST) ──
+    // ── Saisonsiege (meiste Punkte an einem Spieltag) ──
     const stWins = {}; allPlayers.forEach(p => { stWins[p.id] = 0; });
     stArr.forEach(st => {
       const maxPts = Math.max(...allPlayers.map(p => ptsPerST[p.id][st] || 0));
@@ -643,45 +643,165 @@ async function renderStatistik() {
     });
     const maxWins = Math.max(...allPlayers.map(p => stWins[p.id]), 1);
 
+    // ── Tipp-Genauigkeit: exakt / Torabstand / Tendenz / falsch ──
+    const accuracy = {}; // { pid: { exact, diff, tend, wrong, total, noTip } }
+    allPlayers.forEach(p => { accuracy[p.id] = { exact:0, diff:0, tend:0, wrong:0, total:0, noTip:0 }; });
+    stArr.forEach(st => {
+      const tippsForST = allTipps[st] || {};
+      // Alle Match-IDs mit Ergebnis
+      const scoredMatches = [];
+      Object.keys(tippsForST).forEach(midStr => {
+        const matchId = +midStr;
+        let sc = allScores[st]?.[matchId] || null;
+        if (!sc && Array.isArray(allMatches[st])) {
+          const m = allMatches[st].find(x => x.matchID === matchId);
+          if (m?.matchIsFinished && m.matchResults?.length) {
+            const fin = m.matchResults.find(r => r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];
+            sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+          }
+        }
+        if (sc) scoredMatches.push({ matchId, sc });
+      });
+      scoredMatches.forEach(({ matchId, sc }) => {
+        allPlayers.forEach(p => {
+          const tip = tippsForST[matchId]?.[p.id];
+          accuracy[p.id].total++;
+          if (!tip) { accuracy[p.id].noTip++; return; }
+          const th=+tip.home, ta=+tip.away, rh=+sc.home, ra=+sc.away;
+          if (th===rh && ta===ra)             accuracy[p.id].exact++;
+          else if ((th-ta)===(rh-ra))         accuracy[p.id].diff++;
+          else if (getTendency(th,ta)===getTendency(rh,ra)) accuracy[p.id].tend++;
+          else                                accuracy[p.id].wrong++;
+        });
+      });
+    });
+
+    // ── Joker-Effizienz ──
+    const jokerStats = {}; // { pid: { used, hit, pts } }
+    allPlayers.forEach(p => { jokerStats[p.id] = { used:0, hit:0, pts:0 }; });
+    stArr.forEach(st => {
+      const tippsForST = allTipps[st] || {};
+      Object.keys(tippsForST).forEach(midStr => {
+        const matchId = +midStr;
+        allPlayers.forEach(p => {
+          const tip = tippsForST[matchId]?.[p.id];
+          if (!tip?.joker) return;
+          jokerStats[p.id].used++;
+          let sc = allScores[st]?.[matchId] || null;
+          if (!sc && Array.isArray(allMatches[st])) {
+            const m = allMatches[st].find(x => x.matchID === matchId);
+            if (m?.matchIsFinished && m.matchResults?.length) {
+              const fin = m.matchResults.find(r=>r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];
+              sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
+            }
+          }
+          if (!sc) return;
+          const pts = calcPoints(tip.home, tip.away, sc.home, sc.away, true);
+          if (pts > 0) { jokerStats[p.id].hit++; jokerStats[p.id].pts += pts; }
+        });
+      });
+    });
+
+    // ── Formkurve: Ø Punkte letzte 5 Spieltage ──
+    const last5 = stArr.slice(-5);
+    const form = {}; // { pid: avg }
+    allPlayers.forEach(p => {
+      const sum = last5.reduce((s, st) => s + (ptsPerST[p.id][st] || 0), 0);
+      form[p.id] = last5.length ? (sum / last5.length).toFixed(1) : '–';
+    });
+    const formSorted = [...allPlayers].sort((a,b) => parseFloat(form[b.id]||0) - parseFloat(form[a.id]||0));
+
     // ── HTML aufbauen ──
     const colorMap = {};
     sortedPlayers.forEach((p, i) => { colorMap[p.id] = PLAYER_COLORS[i % PLAYER_COLORS.length]; });
 
     let html = '<div class="stat-wrap">';
 
-    // Spieler-Auswahl
-    html += '<div class="stat-section"><h3>Spieler auswählen</h3>';
+    // ── Spieler-Auswahl + Chart ──
+    html += '<div class="stat-section"><h3>Platzierung im Saisonverlauf</h3>';
     html += '<div class="stat-player-select">';
     html += '<label>Spieler 1</label>';
     html += '<select id="stat-p1" onchange="drawRankChart()">';
     sortedPlayers.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
     html += '</select>';
-    html += '<label style="margin-left:12px">Vergleich mit</label>';
+    html += '<label style="margin-left:12px">Vergleich</label>';
     html += '<select id="stat-p2" onchange="drawRankChart()">';
-    html += '<option value="">— kein Vergleich —</option>';
+    html += '<option value="">— kein —</option>';
     sortedPlayers.forEach(p => { html += `<option value="${p.id}">${p.name}</option>`; });
     html += '</select>';
-    html += '</div></div>';
-
-    // Chart
-    html += '<div class="stat-section"><h3>Platzierung im Saisonverlauf</h3>';
+    html += '</div>';
     html += '<div class="stat-canvas-wrap"><canvas id="rankChart"></canvas></div>';
     html += '<div id="stat-legend" class="stat-legend"></div>';
     html += '</div>';
 
-    // Saisonsiege
-    html += '<div class="stat-section"><h3>Spieltag-Siege in der Saison</h3>';
+    // ── Spieltag-Siege ──
+    html += '<div class="stat-section"><h3>🏆 Spieltag-Siege</h3>';
     html += '<table class="stat-wins-table">';
     sortedPlayers.forEach(p => {
       const w = stWins[p.id];
-      const barW = Math.round((w / maxWins) * 160);
+      const barW = Math.round((w / maxWins) * 140);
       html += `<tr>
-        <td style="width:130px;font-weight:600;font-size:12px">${p.name}</td>
-        <td><span class="stat-wins-bar" style="width:${barW}px;background:${colorMap[p.id]}"></span>
-            <span style="font-weight:600">${w}</span> Spieltag${w!==1?'e':''}</td>
+        <td style="width:120px;font-weight:600;font-size:12px">${p.name}</td>
+        <td><span class="stat-wins-bar" style="width:${Math.max(barW,4)}px;background:${colorMap[p.id]}"></span>
+            <span style="font-weight:600">${w}</span><span style="color:var(--muted);font-size:11px"> Spieltag${w!==1?'e':''}</span></td>
       </tr>`;
     });
     html += '</table></div>';
+
+    // ── Tipp-Genauigkeit ──
+    html += '<div class="stat-section"><h3>🎯 Tipp-Genauigkeit</h3>';
+    html += '<table class="stat-wins-table" style="font-size:11px">';
+    html += '<tr style="color:var(--muted)"><td>Spieler</td><td style="text-align:center">Exakt</td><td style="text-align:center">Abstand</td><td style="text-align:center">Tendenz</td><td style="text-align:center">Falsch</td><td style="text-align:center">Kein Tipp</td></tr>';
+    sortedPlayers.forEach(p => {
+      const a = accuracy[p.id];
+      const played = a.total - a.noTip || 1;
+      const pct = v => a.total ? Math.round(v/played*100)+'%' : '–';
+      html += `<tr>
+        <td style="font-weight:600;font-size:12px">${p.name}</td>
+        <td style="text-align:center;color:#2dd4bf;font-weight:600">${a.exact}<span style="color:var(--muted);font-weight:400;font-size:10px"> (${pct(a.exact)})</span></td>
+        <td style="text-align:center;color:#93c5fd">${a.diff}<span style="color:var(--muted);font-size:10px"> (${pct(a.diff)})</span></td>
+        <td style="text-align:center;color:#cbd5e1">${a.tend}<span style="color:var(--muted);font-size:10px"> (${pct(a.tend)})</span></td>
+        <td style="text-align:center;color:#f87171">${a.wrong}<span style="color:var(--muted);font-size:10px"> (${pct(a.wrong)})</span></td>
+        <td style="text-align:center;color:var(--muted)">${a.noTip}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+
+    // ── Joker-Effizienz ──
+    html += '<div class="stat-section"><h3>🃏 Joker-Effizienz</h3>';
+    html += '<table class="stat-wins-table" style="font-size:11px">';
+    html += '<tr style="color:var(--muted)"><td>Spieler</td><td style="text-align:center">Eingesetzt</td><td style="text-align:center">Getroffen</td><td style="text-align:center">Quote</td><td style="text-align:center">Punkte erzielt</td></tr>';
+    sortedPlayers.forEach(p => {
+      const j = jokerStats[p.id];
+      const quote = j.used ? Math.round(j.hit/j.used*100)+'%' : '–';
+      const hitColor = j.used === 0 ? 'var(--muted)' : j.hit/j.used >= 0.6 ? '#34d399' : j.hit/j.used >= 0.4 ? '#fbbf24' : '#f87171';
+      html += `<tr>
+        <td style="font-weight:600;font-size:12px">${p.name}</td>
+        <td style="text-align:center">${j.used}</td>
+        <td style="text-align:center;color:${hitColor};font-weight:600">${j.hit}</td>
+        <td style="text-align:center;color:${hitColor};font-weight:600">${quote}</td>
+        <td style="text-align:center;color:#fbbf24;font-weight:600">${j.pts}</td>
+      </tr>`;
+    });
+    html += '</table></div>';
+
+    // ── Formkurve (letzte 5 Spieltage) ──
+    html += `<div class="stat-section"><h3>🔥 Formkurve <span style="font-size:12px;color:var(--muted);font-weight:400">(Ø Punkte, letzte ${last5.length} Spieltage: ST${last5[0]}–ST${last5[last5.length-1]})</span></h3>`;
+    html += '<table class="stat-wins-table">';
+    const maxForm = Math.max(...allPlayers.map(p => parseFloat(form[p.id])||0), 1);
+    formSorted.forEach(p => {
+      const f = parseFloat(form[p.id]) || 0;
+      const barW = Math.round((f / maxForm) * 140);
+      const fc = f >= 5 ? '#fbbf24' : f >= 3 ? '#34d399' : f >= 1.5 ? '#93c5fd' : '#6b7280';
+      html += `<tr>
+        <td style="width:120px;font-weight:600;font-size:12px">${p.name}</td>
+        <td><span class="stat-wins-bar" style="width:${Math.max(barW,4)}px;background:${fc}"></span>
+            <span style="font-weight:600;color:${fc}">${form[p.id]}</span>
+            <span style="color:var(--muted);font-size:10px"> Pkt/Spieltag</span></td>
+      </tr>`;
+    });
+    html += '</table></div>';
+
     html += '</div>'; // stat-wrap
 
     el.innerHTML = html;
@@ -1020,7 +1140,7 @@ async function renderSaison() {
 
     const topPts = named[0]?.pts ?? 0;
     const botPts = named[named.length-1]?.pts ?? 0;
-    const half   = Math.ceil(named.length / 2);
+    const half   = Math.floor(named.length / 2); // 15 Spieler → 7 Gewinner
 
     // Punktfarbe
     function ptsCls(pts) {
