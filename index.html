@@ -278,6 +278,8 @@ canvas#rankChart { display: block; width: 100%; max-width: 860px; height: 280px;
 .kab-comment-input input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 12px; font-family: 'Barlow', sans-serif; outline: none; }
 .kab-comment-input input:focus { border-color: var(--kab); }
 .kab-comment-input button { background: var(--kab); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.live-dot { font-size: 11px; margin-left: 4px; animation: livepulse 1.5s infinite; }
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 /* ── RESPONSIVE ── */
 @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
@@ -301,6 +303,7 @@ const ADMIN_PASSWORD = 'liga1992admin';
 // Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA   = 'bl1';
 const SAISON = '2025'; // 2025 = Saison 2025/26
+const FDORG_KEY = '3b0ccdb93f3249feb9c04be90db83fab'; // football-data.org API key
 const RUECKSERIE_FROM = 18; // erster Spieltag der Rückserie
 const RUECKSERIE_TO   = 34; // letzter Spieltag der Rückserie
 const SAISON_LABEL    = '2025/26 Rückserie';
@@ -403,6 +406,9 @@ let allScores     = {}; // { spieltag: { matchId: {home,away} } } – admin over
 let maumauData    = [];
 let tabLoaded     = {};
 let matchesExpanded = false; // Paarungen in Übersicht ein-/ausblenden
+let fdorgData       = {}; // { spieltag: { 'normKey': {home,away,status} } }
+let fdorgFetchedAt  = {}; // { spieltag: timestamp }
+let livePollingTimer = null; // setInterval handle for live polling
 let kabFilter = 'alle'; // aktiver Kabinentalk-Filter
 let kabPosts  = [];     // gecachte Posts
 let kabSeenCount = 0;   // für Notif-Badge
@@ -563,7 +569,7 @@ async function detectCurrentSpieltag() {
 
 // ── Score helper ──
 async function ensureAdminScores(spieltag) {
-  if (allScores[spieltag] !== undefined) return; // already in cache (bulk-loaded at boot)
+  if (allScores[spieltag] !== undefined) return;
   allScores[spieltag] = {};
   if (!db) return;
   try {
@@ -572,12 +578,98 @@ async function ensureAdminScores(spieltag) {
   } catch(e) {}
 }
 
+// ── football-data.org Live-Scores ──
+function fdorgNorm(name) {
+  return (name||'').toLowerCase()
+    .replace(/borussia mönchengladbach/,'gladbach').replace(/mönchengladbach/,'gladbach')
+    .replace(/bayer 04 /,'bayer ').replace(/fc (?=\w)/,'').replace(/1\. /,'')
+    .replace(/vfb /,'').replace(/vfl /,'').replace(/rb /,'')
+    .replace(/bsc /,'').replace(/sv /,'').replace(/sc /,'')
+    .replace(/tsg /,'').replace(/fsv /,'').replace(/\s+/g,' ').trim();
+}
+
+async function fetchFDOrgScores(spieltag) {
+  try {
+    const r = await fetch(
+      `https://api.football-data.org/v4/competitions/BL1/matches?matchday=${spieltag}&season=${SAISON}`,
+      { headers: { 'X-Auth-Token': FDORG_KEY }, signal: AbortSignal.timeout(6000) }
+    );
+    if (!r.ok) { console.warn('football-data.org HTTP', r.status); return; }
+    const data = await r.json();
+    const map = {};
+    (data.matches || []).forEach(m => {
+      const k = fdorgNorm(m.homeTeam.name) + '|' + fdorgNorm(m.awayTeam.name);
+      const sc = m.score?.fullTime;
+      map[k] = {
+        home:   sc?.home ?? null,
+        away:   sc?.away ?? null,
+        status: m.status,        // SCHEDULED|IN_PLAY|PAUSED|FINISHED
+        utcDate: m.utcDate
+      };
+    });
+    fdorgData[spieltag]      = map;
+    fdorgFetchedAt[spieltag] = Date.now();
+    // Check if any match is live → start/stop polling
+    const hasLive = Object.values(map).some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
+    if (hasLive) startLivePolling(); else if (!hasLive) maybeStopPolling(map);
+  } catch(e) { console.warn('fetchFDOrgScores error:', e); }
+}
+
+function startLivePolling() {
+  if (livePollingTimer) return; // already running
+  document.querySelectorAll('[data-tab="uebersicht"]').forEach(t => {
+    if (!t.querySelector('.live-dot')) {
+      t.insertAdjacentHTML('beforeend', '<span class="live-dot">🔴</span>');
+    }
+  });
+  livePollingTimer = setInterval(async () => {
+    await fetchFDOrgScores(currentSpieltag);
+    if (currentTab === 'uebersicht') {
+      tabLoaded['uebersicht'] = false;
+      await loadTab('uebersicht');
+    }
+  }, 60000); // alle 60 Sekunden
+}
+
+function maybeStopPolling(map) {
+  const anyActive = map && Object.values(map).some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
+  if (!anyActive && livePollingTimer) {
+    clearInterval(livePollingTimer);
+    livePollingTimer = null;
+    document.querySelectorAll('.live-dot').forEach(d => d.remove());
+  }
+}
+
+function fdorgLookup(match, spieltag) {
+  const map = fdorgData[spieltag];
+  if (!map) return null;
+  const k1 = fdorgNorm(match.team1?.teamName || '');
+  const k2 = fdorgNorm(match.team2?.teamName || '');
+  // 1. Exakt
+  if (map[k1+'|'+k2] !== undefined) {
+    const d = map[k1+'|'+k2];
+    return d.home !== null ? { home: d.home, away: d.away, live: d.status==='IN_PLAY'||d.status==='PAUSED' } : null;
+  }
+  // 2. Fuzzy: ersten 6 Zeichen beider Teams vergleichen
+  for (const [key, val] of Object.entries(map)) {
+    const [a, b] = key.split('|');
+    if (a.slice(0,6) === k1.slice(0,6) && b.slice(0,6) === k2.slice(0,6)) {
+      return val.home !== null ? { home: val.home, away: val.away, live: val.status==='IN_PLAY'||val.status==='PAUSED' } : null;
+    }
+  }
+  return null;
+}
+
 function getMatchScore(match, spieltag) {
-  // Admin override first
-  if (allScores[spieltag] && allScores[spieltag][match.matchID]) {
+  // 1. Admin-Override (höchste Priorität)
+  if (allScores[spieltag]?.[match.matchID]) {
     return allScores[spieltag][match.matchID];
   }
-  if (match.matchIsFinished && match.matchResults && match.matchResults.length) {
+  // 2. football-data.org (live + abgeschlossen)
+  const fdsc = fdorgLookup(match, spieltag);
+  if (fdsc) return fdsc;
+  // 3. OpenLigaDB (Fallback, gecacht)
+  if (match.matchIsFinished && match.matchResults?.length) {
     const final = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length-1];
     return { home: final.pointsTeam1, away: final.pointsTeam2 };
   }
@@ -658,9 +750,10 @@ function toggleMatches() {
   loadTab('uebersicht');
 }
 async function refreshUebersicht() {
-  // Cache für aktuellen Spieltag leeren → erzwingt neuen API-Call
   delete allMatches[currentSpieltag];
   delete allMatchesTTL[currentSpieltag];
+  delete fdorgData[currentSpieltag];
+  delete fdorgFetchedAt[currentSpieltag];
   tabLoaded['uebersicht'] = false;
   await loadTab('uebersicht');
 }
@@ -1072,6 +1165,7 @@ async function renderUebersicht() {
   try {
   const matches = await fetchMatches(currentSpieltag);
   await ensureAdminScores(currentSpieltag);
+  await fetchFDOrgScores(currentSpieltag); // Live-Scores
   await loadTipps(currentSpieltag);
 
   // compute total pts for ranking
@@ -1134,7 +1228,9 @@ async function renderUebersicht() {
     html += '<tr class="match-header"><td></td><td></td>';
     matches.forEach(m => {
       const sc = getMatchScore(m, currentSpieltag);
-      html += `<td class="match-score">${sc ? sc.home+':'+sc.away : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+      const isLive = sc?.live === true;
+    const liveIndicator = isLive ? ' <span style="color:#ef4444;font-size:9px;vertical-align:middle">🔴</span>' : '';
+    html += `<td class="match-score">${sc ? sc.home+':'+sc.away+liveIndicator : '<span style="color:var(--muted)">-:-</span>'}</td>`;
     });
     html += '<td></td><td></td></tr>';
     // Tipper rows
