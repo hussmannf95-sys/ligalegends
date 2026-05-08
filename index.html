@@ -590,20 +590,33 @@ function fdorgNorm(name) {
 
 async function fetchFDOrgScores(spieltag) {
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 7000);
     const r = await fetch(
       `https://api.football-data.org/v4/competitions/BL1/matches?matchday=${spieltag}&season=${SAISON}`,
-      { headers: { 'X-Auth-Token': FDORG_KEY }, signal: AbortSignal.timeout(6000) }
+      { headers: { 'X-Auth-Token': FDORG_KEY }, signal: ctrl.signal }
     );
-    if (!r.ok) { console.warn('football-data.org HTTP', r.status); return; }
+    clearTimeout(timer);
+    if (!r.ok) {
+      console.warn('football-data.org HTTP', r.status, await r.text());
+      fdorgData[spieltag] = fdorgData[spieltag] || { _error: r.status };
+      return;
+    }
     const data = await r.json();
     const map = {};
     (data.matches || []).forEach(m => {
       const k = fdorgNorm(m.homeTeam.name) + '|' + fdorgNorm(m.awayTeam.name);
-      const sc = m.score?.fullTime;
+      // fullTime = Endergebnis oder aktueller Stand (live)
+      // halfTime = Stand zur Halbzeit
+      const ft = m.score?.fullTime;
+      const ht = m.score?.halfTime;
+      // Nimm fullTime wenn vorhanden, sonst halfTime (nur HZ oder Pause)
+      const home = ft?.home ?? ht?.home ?? null;
+      const away = ft?.away ?? ht?.away ?? null;
       map[k] = {
-        home:   sc?.home ?? null,
-        away:   sc?.away ?? null,
-        status: m.status,        // SCHEDULED|IN_PLAY|PAUSED|FINISHED
+        home,
+        away,
+        status: m.status,
         utcDate: m.utcDate
       };
     });
@@ -1188,6 +1201,11 @@ async function renderUebersicht() {
     </button>
     <button onclick="refreshUebersicht()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Aktualisieren</button>
     <span style="font-size:11px;color:var(--muted)">API: vor ${ageStr}</span>
+    ${fdorgData[currentSpieltag]
+      ? (fdorgData[currentSpieltag]._error
+          ? `<span style="font-size:10px;color:#f87171">⚠ football-data.org Fehler ${fdorgData[currentSpieltag]._error}</span>`
+          : `<span style="font-size:10px;color:#34d399">✓ live-data.org aktiv</span>`)
+      : '<span style="font-size:10px;color:var(--muted)">○ football-data.org lädt…</span>'}
   </div>`;
 
   let html;
