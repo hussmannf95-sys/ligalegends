@@ -525,11 +525,20 @@ async function loadAllAdminScores() {
 }
 
 // ── OpenLigaDB ──
-async function fetchMatches(spieltag) {
-  if (allMatches[spieltag] !== undefined) return allMatches[spieltag];
+const MATCH_CACHE_TTL = 5 * 60 * 1000; // 5 Minuten für aktuellen Spieltag
+const allMatchesTTL   = {}; // { spieltag: timestamp }
+
+async function fetchMatches(spieltag, forceRefresh = false) {
+  const isCurrent = spieltag === currentSpieltag;
+  const age = Date.now() - (allMatchesTTL[spieltag] || 0);
+  const expired = age > MATCH_CACHE_TTL;
+  // Vergangene Spieltage: permanent cachen. Aktueller: nach 5 Min oder bei forceRefresh neu laden.
+  if (allMatches[spieltag] !== undefined && !forceRefresh && (!isCurrent || !expired)) {
+    return allMatches[spieltag];
+  }
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000); // 8s Timeout
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(
       `https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`,
       { signal: ctrl.signal }
@@ -537,10 +546,11 @@ async function fetchMatches(spieltag) {
     clearTimeout(timer);
     const data = await r.json();
     allMatches[spieltag] = Array.isArray(data) ? data : [];
+    allMatchesTTL[spieltag] = Date.now();
     return allMatches[spieltag];
   } catch(e) {
-    allMatches[spieltag] = [];
-    return [];
+    if (allMatches[spieltag] === undefined) allMatches[spieltag] = [];
+    return allMatches[spieltag];
   }
 }
 async function detectCurrentSpieltag() {
@@ -646,6 +656,13 @@ function toggleMatches() {
   matchesExpanded = !matchesExpanded;
   tabLoaded['uebersicht'] = false;
   loadTab('uebersicht');
+}
+async function refreshUebersicht() {
+  // Cache für aktuellen Spieltag leeren → erzwingt neuen API-Call
+  delete allMatches[currentSpieltag];
+  delete allMatchesTTL[currentSpieltag];
+  tabLoaded['uebersicht'] = false;
+  await loadTab('uebersicht');
 }
 // ── STATISTIK ──
 // Spieler-Farben für Chart (bis zu 16 Spieler)
@@ -1064,10 +1081,19 @@ async function renderUebersicht() {
 
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
-  const toggleBtn = `<div style="padding:12px 16px 4px">
+  const now = new Date();
+  const lastFetch = allMatchesTTL[currentSpieltag];
+  const ageStr = lastFetch
+    ? (Math.floor((now - lastFetch) / 60000) < 1
+        ? 'gerade eben'
+        : Math.floor((now - lastFetch) / 60000) + ' Min')
+    : '–';
+  const toggleBtn = `<div style="padding:12px 16px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
     <button id="toggle-matches-btn" class="toggle-matches-btn${matchesExpanded?' expanded':''}" onclick="toggleMatches()">
       ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
     </button>
+    <button onclick="refreshUebersicht()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Aktualisieren</button>
+    <span style="font-size:11px;color:var(--muted)">API: vor ${ageStr}</span>
   </div>`;
 
   let html;
