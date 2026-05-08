@@ -592,8 +592,9 @@ async function fetchFDOrgScores(spieltag) {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 7000);
+    const fdSaison = spieltag <= 17 ? String(parseInt(SAISON) - 1) : SAISON;
     const r = await fetch(
-      `https://api.football-data.org/v4/competitions/BL1/matches?matchday=${spieltag}&season=${SAISON}`,
+      `https://api.football-data.org/v4/competitions/BL1/matches?matchday=${spieltag}&season=${fdSaison}`,
       { headers: { 'X-Auth-Token': FDORG_KEY }, signal: ctrl.signal }
     );
     clearTimeout(timer);
