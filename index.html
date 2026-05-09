@@ -55,11 +55,9 @@ header {
 .overview-wrap { overflow-x: auto; padding: 20px; }
 .overview-table { border-collapse: collapse; min-width: 900px; width: 100%; font-size: 13px; }
 .overview-table th, .overview-table td { padding: 0; }
-/* Match header row */
 .match-header th { background: var(--surface2); border-bottom: 1px solid var(--border); }
 .match-col-header { padding: 6px 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .3px; min-width: 68px; }
 .match-score { font-size: 13px; font-weight: 500; font-family: 'Barlow', sans-serif; color: var(--text); padding: 4px 8px 8px; text-align: center; }
-/* Tipper row */
 .tipper-row td { border-bottom: 1px solid var(--border); height: 38px; }
 .tipper-row:hover td { background: rgba(255,255,255,.02); }
 .rank-cell { text-align: center; width: 36px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--muted); }
@@ -147,11 +145,9 @@ header {
 .msg { padding: 14px 16px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
 .msg-ok { background: rgba(0,196,160,.1); color: var(--accent); border: 1px solid rgba(0,196,160,.2); }
 .msg-err { background: rgba(232,65,65,.1); color: var(--danger); border: 1px solid rgba(232,65,65,.2); }
-
 /* ── COLLAPSIBLE MATCH COLUMNS ── */
 .match-col { transition: opacity .2s; }
 .overview-table.collapsed .match-col { display: none; }
-/* Collapsed: remove horizontal scroll, table fits viewport */
 .overview-table.collapsed { min-width: 0 !important; }
 .overview-wrap.is-collapsed { overflow-x: hidden; }
 .overview-table.collapsed .name-cell { min-width: 0; max-width: 52vw; }
@@ -184,13 +180,12 @@ header {
 .s-name .funname  { font-size:9px; color:var(--muted); }
 .s-sum   { font-family:'Barlow',sans-serif; font-weight:600; font-size:13px;
            color:var(--accent); padding-right:6px; border-left:1px solid var(--border); }
-/* Punktfarben */
-.p6 { color:#fbbf24; font-weight:700; }   /* 6 – gold    (exakt + Joker) */
-.p4 { color:#34d399; font-weight:700; }   /* 4 – grün    (Abstand + Joker) */
-.p3 { color:#2dd4bf; font-weight:600; }   /* 3 – teal    (exakt) */
-.p2 { color:#93c5fd; font-weight:500; }   /* 2 – hellblau (Torabstand) */
-.p1 { color:#cbd5e1; font-weight:400; }   /* 1 – hellgrau (Tendenz) */
-.p0 { color:#4b5563; font-weight:400; }   /* 0 – mittelgrau (falsch/kein Tipp) */
+.p6 { color:#fbbf24; font-weight:700; }
+.p4 { color:#34d399; font-weight:700; }
+.p3 { color:#2dd4bf; font-weight:600; }
+.p2 { color:#93c5fd; font-weight:500; }
+.p1 { color:#cbd5e1; font-weight:400; }
+.p0 { color:#4b5563; font-weight:400; }
 /* ── STATISTIK ── */
 .stat-wrap { padding: 16px; max-width: 900px; }
 .stat-player-select { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: center; }
@@ -290,34 +285,19 @@ canvas#rankChart { display: block; width: 100%; max-width: 860px; height: 280px;
      CONFIGURATION – edit here
      ════════════════════════════════ -->
 <script>
-// ┌──────────────────────────────────┐
-// │        SUPABASE CONFIG           │
-// │  Replace with your project data  │
-// └──────────────────────────────────┘
 const SUPABASE_URL  = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
-
-// Admin password (change this!)
 const ADMIN_PASSWORD = 'liga1992admin';
-
-// Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA   = 'bl1';
-const SAISON = '2025'; // 2025 = Saison 2025/26
-const FDORG_KEY  = '3b0ccdb93f3249feb9c04be90db83fab'; // nur noch in Edge Function genutzt
+const SAISON = '2025';
+const FDORG_KEY  = '3b0ccdb93f3249feb9c04be90db83fab';
 const EDGE_URL   = 'https://wwwhaoaeqlgltpwoutyt.supabase.co/functions/v1/scores';
-const RUECKSERIE_FROM = 18; // erster Spieltag der Rückserie
-const RUECKSERIE_TO   = 34; // letzter Spieltag der Rückserie
+const RUECKSERIE_FROM = 18;
+const RUECKSERIE_TO   = 34;
 const SAISON_LABEL    = '2025/26 Rückserie';
-
-// Points system
-const PTS_CORRECT = 3;  // exaktes Ergebnis
-const PTS_DIFF    = 2;  // richtiger Torabstand (z.B. 4:1 = 3:0)
-const PTS_TEND    = 1;  // richtige Tendenz (S/U/N)
-// Joker verdoppelt die erzielten Punkte
-
-// Fun names by rank tier (for N players, assigned from top to bottom)
-// Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
-// Middle names repeat as needed
+const PTS_CORRECT = 3;
+const PTS_DIFF    = 2;
+const PTS_TEND    = 1;
 const FUN_NAMES_MIDDLE = [
   'Wolfsrudel', 'Taktikfuchs', 'Abstauber', 'Glücksritter', 'Pragmatiker',
   'Würfel-Stratege', 'Esoteriker', 'Quereinsteiger', 'Fußball-Romantiker', 'Snooker-Experte', 'Kreisliga-Legende'
@@ -368,13 +348,11 @@ const FUN_NAMES_MIDDLE = [
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
 
-  <!-- Spieltag Nav (shown for overview tabs) -->
   <div id="spieltag-nav" class="spieltag-nav" style="display:none">
     <span>Spieltag</span>
     <div id="st-buttons"></div>
   </div>
 
-  <!-- Tab Contents -->
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-saison" style="display:none"><div class="loading">Lade Saisontabelle</div></div>
   <div id="tab-tippen" style="display:none"><div class="loading">Lade Spieltag</div></div>
@@ -401,25 +379,24 @@ let currentTab    = 'uebersicht';
 let currentSpieltag = 1;
 let maxSpieltag   = 34;
 let allPlayers    = [];
-let allTipps      = {}; // { spieltag: { matchId: { playerId: {home,away,joker} } } }
-let allMatches    = {}; // { spieltag: [{...OpenLigaDB match}] }
-let allScores     = {}; // { spieltag: { matchId: {home,away} } } – admin overrides
+let allTipps      = {};
+let allMatches    = {};
+let allScores     = {};
 let maumauData    = [];
 let tabLoaded     = {};
-let matchesExpanded = false; // Paarungen in Übersicht ein-/ausblenden
-let fdorgData       = {}; // { spieltag: { 'normKey': {home,away,status} } }
-let fdorgFetchedAt  = {}; // { spieltag: timestamp }
-let livePollingTimer = null; // setInterval handle for live polling
-let kabFilter = 'alle'; // aktiver Kabinentalk-Filter
-let kabPosts  = [];     // gecachte Posts
-let kabSeenCount = 0;   // für Notif-Badge
+let matchesExpanded = false;
+let fdorgData       = {};
+let fdorgFetchedAt  = {};
+let livePollingTimer = null;
+let kabFilter = 'alle';
+let kabPosts  = [];
+let kabSeenCount = 0;
 
 // ── Fun name assignment ──
 function assignFunNames(players) {
   const n = players.length;
   if (n === 0) return players;
   const result = [...players];
-  // Shared 1st: alle mit gleicher Punktzahl wie Platz 1 → GOAT
   const topPts = result[0].pts;
   const botPts = result[n-1].pts;
   let firstNonGoat = 0;
@@ -427,13 +404,10 @@ function assignFunNames(players) {
   result.forEach((p, i) => {
     if (p.pts === topPts) { p.funname = 'GOAT'; firstNonGoat = i + 1; }
   });
-  // Shared last: alle mit gleicher Punktzahl wie letzter → Ehren-Laie
-  // (aber nur wenn nicht bereits GOAT)
   for (let i = n - 1; i >= firstNonGoat; i--) {
     if (result[i].pts === botPts) { result[i].funname = 'Ehren-Laie'; firstEhren = i; }
     else break;
   }
-  // Mittelfeld
   const midPlayers = result.slice(firstNonGoat, firstEhren);
   const midSlots   = midPlayers.length;
   midPlayers.forEach((p, i) => {
@@ -491,7 +465,7 @@ async function bootApp() {
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
   await detectCurrentSpieltag();
-  await Promise.all([loadAllTipps(), loadAllAdminScores()]); // single bulk load
+  await Promise.all([loadAllTipps(), loadAllAdminScores()]);
   switchTab('uebersicht');
 }
 
@@ -502,44 +476,43 @@ async function loadPlayers() {
   allPlayers = data || [];
 }
 
-// ── Bulk-load ALL tipps in one query (instead of per-spieltag) ──
+// ── Bulk-load ALL tipps ──
 async function loadAllTipps() {
   if (!db) return;
   try {
     const { data } = await db.from('tipps').select('*');
+    allTipps = {}; // reset before filling
     (data||[]).forEach(t => {
       if (!allTipps[t.spieltag]) allTipps[t.spieltag] = {};
       if (!allTipps[t.spieltag][t.match_id]) allTipps[t.spieltag][t.match_id] = {};
       allTipps[t.spieltag][t.match_id][t.player_id] = { home: t.tip_home, away: t.tip_away, joker: t.joker };
     });
-    // Mark all spieltags as loaded so per-spieltag calls are skipped
     for (let i = 1; i <= 34; i++) { if (!allTipps[i]) allTipps[i] = {}; }
   } catch(e) { console.warn('loadAllTipps failed:', e); }
 }
 
-// ── Bulk-load ALL admin_scores in one query ──
+// ── Bulk-load ALL admin_scores ──
 async function loadAllAdminScores() {
   if (!db) return;
   try {
     const { data } = await db.from('admin_scores').select('*');
+    allScores = {}; // reset before filling
     (data||[]).forEach(r => {
       if (!allScores[r.spieltag]) allScores[r.spieltag] = {};
       allScores[r.spieltag][r.match_id] = { home: r.score_home, away: r.score_away };
     });
-    // Mark all spieltags as loaded
     for (let i = 1; i <= 34; i++) { if (allScores[i] === undefined) allScores[i] = {}; }
   } catch(e) { console.warn('loadAllAdminScores failed:', e); }
 }
 
 // ── OpenLigaDB ──
-const MATCH_CACHE_TTL = 5 * 60 * 1000; // 5 Minuten für aktuellen Spieltag
-const allMatchesTTL   = {}; // { spieltag: timestamp }
+const MATCH_CACHE_TTL = 5 * 60 * 1000;
+const allMatchesTTL   = {};
 
 async function fetchMatches(spieltag, forceRefresh = false) {
   const isCurrent = spieltag === currentSpieltag;
   const age = Date.now() - (allMatchesTTL[spieltag] || 0);
   const expired = age > MATCH_CACHE_TTL;
-  // Vergangene Spieltage: permanent cachen. Aktueller: nach 5 Min oder bei forceRefresh neu laden.
   if (allMatches[spieltag] !== undefined && !forceRefresh && (!isCurrent || !expired)) {
     return allMatches[spieltag];
   }
@@ -594,7 +567,6 @@ async function fetchFDOrgScores(spieltag) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     const fdSaison = spieltag <= 17 ? String(parseInt(SAISON) - 1) : SAISON;
-    // Supabase Edge Function als Proxy → kein CORS, API-Key serverseitig
     const r = await fetch(
       `${EDGE_URL}?spieltag=${spieltag}&saison=${fdSaison}`,
       { signal: ctrl.signal }
@@ -620,7 +592,6 @@ async function fetchFDOrgScores(spieltag) {
     });
     fdorgData[spieltag]      = map;
     fdorgFetchedAt[spieltag] = Date.now();
-    // Check if any match is live → start/stop polling
     const hasLive = Object.values(map).some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
     if (hasLive) startLivePolling(); else if (!hasLive) maybeStopPolling(map);
   } catch(e) {
@@ -630,7 +601,7 @@ async function fetchFDOrgScores(spieltag) {
 }
 
 function startLivePolling() {
-  if (livePollingTimer) return; // already running
+  if (livePollingTimer) return;
   document.querySelectorAll('[data-tab="uebersicht"]').forEach(t => {
     if (!t.querySelector('.live-dot')) {
       t.insertAdjacentHTML('beforeend', '<span class="live-dot">🔴</span>');
@@ -642,7 +613,7 @@ function startLivePolling() {
       tabLoaded['uebersicht'] = false;
       await loadTab('uebersicht');
     }
-  }, 60000); // alle 60 Sekunden
+  }, 60000);
 }
 
 function maybeStopPolling(map) {
@@ -659,12 +630,10 @@ function fdorgLookup(match, spieltag) {
   if (!map) return null;
   const k1 = fdorgNorm(match.team1?.teamName || '');
   const k2 = fdorgNorm(match.team2?.teamName || '');
-  // 1. Exakt
   if (map[k1+'|'+k2] !== undefined) {
     const d = map[k1+'|'+k2];
     return d.home !== null ? { home: d.home, away: d.away, live: d.status==='IN_PLAY'||d.status==='PAUSED' } : null;
   }
-  // 2. Fuzzy: ersten 6 Zeichen beider Teams vergleichen
   for (const [key, val] of Object.entries(map)) {
     const [a, b] = key.split('|');
     if (a.slice(0,6) === k1.slice(0,6) && b.slice(0,6) === k2.slice(0,6)) {
@@ -675,14 +644,9 @@ function fdorgLookup(match, spieltag) {
 }
 
 function getMatchScore(match, spieltag) {
-  // 1. Admin-Override (höchste Priorität)
-  if (allScores[spieltag]?.[match.matchID]) {
-    return allScores[spieltag][match.matchID];
-  }
-  // 2. football-data.org (live + abgeschlossen)
+  if (allScores[spieltag]?.[match.matchID]) return allScores[spieltag][match.matchID];
   const fdsc = fdorgLookup(match, spieltag);
   if (fdsc) return fdsc;
-  // 3. OpenLigaDB (Fallback, gecacht)
   if (match.matchIsFinished && match.matchResults?.length) {
     const final = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length-1];
     return { home: final.pointsTeam1, away: final.pointsTeam2 };
@@ -697,13 +661,9 @@ function getTendency(home, away) {
 function calcPoints(tipHome, tipAway, realHome, realAway, joker) {
   if (realHome === null || realHome === undefined) return null;
   let pts = 0;
-  if (+tipHome === +realHome && +tipAway === +realAway) {
-    pts = PTS_CORRECT; // exaktes Ergebnis
-  } else if ((+tipHome - +tipAway) === (+realHome - +realAway)) {
-    pts = PTS_DIFF;    // richtiger Torabstand
-  } else if (getTendency(+tipHome, +tipAway) === getTendency(+realHome, +realAway)) {
-    pts = PTS_TEND;    // richtige Tendenz
-  }
+  if (+tipHome === +realHome && +tipAway === +realAway)       pts = PTS_CORRECT;
+  else if ((+tipHome - +tipAway) === (+realHome - +realAway)) pts = PTS_DIFF;
+  else if (getTendency(+tipHome, +tipAway) === getTendency(+realHome, +realAway)) pts = PTS_TEND;
   if (joker && pts > 0) pts *= 2;
   return pts;
 }
@@ -731,19 +691,19 @@ function buildSpieltagNav(tab) {
   }
 }
 async function loadTab(tab) {
-  if      (tab === 'uebersicht')       await renderUebersicht();
-  else if (tab === 'saison')           await renderSaison();
-  else if (tab === 'tippen')           await renderTippen();
-  else if (tab === 'maumau')           await renderMauMau();
-  else if (tab === 'statistik')        await renderStatistik();
-  else if (tab === 'kabinentalk')      await renderKabinentalk();
-  else if (tab === 'regeln')           renderRegeln();
-  else if (tab === 'admin')            renderAdmin();
+  if      (tab === 'uebersicht')  await renderUebersicht();
+  else if (tab === 'saison')      await renderSaison();
+  else if (tab === 'tippen')      await renderTippen();
+  else if (tab === 'maumau')      await renderMauMau();
+  else if (tab === 'statistik')   await renderStatistik();
+  else if (tab === 'kabinentalk') await renderKabinentalk();
+  else if (tab === 'regeln')      renderRegeln();
+  else if (tab === 'admin')       renderAdmin();
 }
 
-// ── Load tipps from DB (cache-first; bulk already loaded at boot) ──
+// ── Load tipps (cache-first) ──
 async function loadTipps(spieltag) {
-  if (allTipps[spieltag] !== undefined) return; // already in cache
+  if (allTipps[spieltag] !== undefined) return;
   if (!db) { allTipps[spieltag] = {}; return; }
   try {
     const { data } = await db.from('tipps').select('*').eq('spieltag', spieltag);
@@ -756,23 +716,36 @@ async function loadTipps(spieltag) {
   } catch(e) { allTipps[spieltag] = {}; }
 }
 
-
-// ── Toggle Paarungen Columns ──
+// ── Toggle Paarungen ──
 function toggleMatches() {
   matchesExpanded = !matchesExpanded;
   tabLoaded['uebersicht'] = false;
   loadTab('uebersicht');
 }
+
+// ── FIX 1: refreshUebersicht – invalidiert jetzt auch Tipps & Scores ──
 async function refreshUebersicht() {
   delete allMatches[currentSpieltag];
   delete allMatchesTTL[currentSpieltag];
   delete fdorgData[currentSpieltag];
   delete fdorgFetchedAt[currentSpieltag];
+  delete allTipps[currentSpieltag];   // NEU: Tipps neu laden
+  delete allScores[currentSpieltag];  // NEU: Admin-Scores neu laden
   tabLoaded['uebersicht'] = false;
+  await Promise.all([loadTipps(currentSpieltag), ensureAdminScores(currentSpieltag)]);
   await loadTab('uebersicht');
 }
+
+// ── FIX 2: refreshAll – kompletter Bulk-Reload für Saison/Statistik ──
+async function refreshAll() {
+  allTipps  = {};
+  allScores = {};
+  await Promise.all([loadAllTipps(), loadAllAdminScores()]);
+  tabLoaded = {};
+  await loadTab(currentTab);
+}
+
 // ── STATISTIK ──
-// Spieler-Farben für Chart (bis zu 16 Spieler)
 const PLAYER_COLORS = [
   '#00c4a0','#60a5fa','#f59e0b','#f472b6','#a78bfa','#34d399',
   '#fb923c','#e879f9','#38bdf8','#fbbf24','#4ade80','#f87171',
@@ -788,8 +761,7 @@ async function renderStatistik() {
     const stArr = [];
     for (let s = from; s <= to; s++) stArr.push(s);
 
-    // ── Punkte pro Spieler pro Spieltag (cache-only, kein Netzwerk) ──
-    const ptsPerST = {}; // { playerId: { st: pts } }
+    const ptsPerST = {};
     allPlayers.forEach(p => { ptsPerST[p.id] = {}; });
 
     stArr.forEach(st => {
@@ -814,24 +786,19 @@ async function renderStatistik() {
       });
     });
 
-    // ── Kumulierte Gesamtpunkte & laufende Platzierung pro Spieltag ──
-    // rankOverTime[playerId][st] = Platzierung nach diesem Spieltag
     const cumPts   = {}; allPlayers.forEach(p => { cumPts[p.id] = 0; });
     const rankOverTime = {}; allPlayers.forEach(p => { rankOverTime[p.id] = {}; });
 
     stArr.forEach(st => {
       allPlayers.forEach(p => { cumPts[p.id] += (ptsPerST[p.id][st] || 0); });
-      // Rang ermitteln (1 = bester)
       const sorted = [...allPlayers].sort((a,b) => cumPts[b.id] - cumPts[a.id]);
       sorted.forEach((p, i) => { rankOverTime[p.id][st] = i + 1; });
     });
 
-    // ── Gesamtpunkte & Sortierung ──
     const totals = {};
     allPlayers.forEach(p => { totals[p.id] = stArr.reduce((s, st) => s + (ptsPerST[p.id][st] || 0), 0); });
     const sortedPlayers = [...allPlayers].sort((a, b) => totals[b.id] - totals[a.id]);
 
-    // ── Saisonsiege (meiste Punkte an einem Spieltag) ──
     const stWins = {}; allPlayers.forEach(p => { stWins[p.id] = 0; });
     stArr.forEach(st => {
       const maxPts = Math.max(...allPlayers.map(p => ptsPerST[p.id][st] || 0));
@@ -840,12 +807,10 @@ async function renderStatistik() {
     });
     const maxWins = Math.max(...allPlayers.map(p => stWins[p.id]), 1);
 
-    // ── Tipp-Genauigkeit: exakt / Torabstand / Tendenz / falsch ──
-    const accuracy = {}; // { pid: { exact, diff, tend, wrong, total, noTip } }
+    const accuracy = {};
     allPlayers.forEach(p => { accuracy[p.id] = { exact:0, diff:0, tend:0, wrong:0, total:0, noTip:0 }; });
     stArr.forEach(st => {
       const tippsForST = allTipps[st] || {};
-      // Alle Match-IDs mit Ergebnis
       const scoredMatches = [];
       Object.keys(tippsForST).forEach(midStr => {
         const matchId = +midStr;
@@ -873,8 +838,7 @@ async function renderStatistik() {
       });
     });
 
-    // ── Joker-Effizienz ──
-    const jokerStats = {}; // { pid: { used, hit, pts } }
+    const jokerStats = {};
     allPlayers.forEach(p => { jokerStats[p.id] = { used:0, hit:0, pts:0 }; });
     stArr.forEach(st => {
       const tippsForST = allTipps[st] || {};
@@ -899,22 +863,25 @@ async function renderStatistik() {
       });
     });
 
-    // ── Formkurve: Ø Punkte letzte 5 Spieltage ──
     const last5 = stArr.slice(-5);
-    const form = {}; // { pid: avg }
+    const form = {};
     allPlayers.forEach(p => {
       const sum = last5.reduce((s, st) => s + (ptsPerST[p.id][st] || 0), 0);
       form[p.id] = last5.length ? (sum / last5.length).toFixed(1) : '–';
     });
     const formSorted = [...allPlayers].sort((a,b) => parseFloat(form[b.id]||0) - parseFloat(form[a.id]||0));
 
-    // ── HTML aufbauen ──
     const colorMap = {};
     sortedPlayers.forEach((p, i) => { colorMap[p.id] = PLAYER_COLORS[i % PLAYER_COLORS.length]; });
 
     let html = '<div class="stat-wrap">';
 
-    // ── Spieler-Auswahl + Chart ──
+    // Refresh-Button
+    html += `<div style="padding:0 0 12px;display:flex;align-items:center;gap:8px">
+      <button onclick="refreshAll()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Alle Daten neu laden</button>
+      <span style="font-size:11px;color:var(--muted)">Tipps &amp; Ergebnisse aktualisieren</span>
+    </div>`;
+
     html += '<div class="stat-section"><h3>Platzierung im Saisonverlauf</h3>';
     html += '<div class="stat-player-select">';
     html += '<label>Spieler 1</label>';
@@ -931,7 +898,6 @@ async function renderStatistik() {
     html += '<div id="stat-legend" class="stat-legend"></div>';
     html += '</div>';
 
-    // ── Spieltag-Siege ──
     html += '<div class="stat-section"><h3>🏆 Spieltag-Siege</h3>';
     html += '<table class="stat-wins-table">';
     sortedPlayers.forEach(p => {
@@ -945,7 +911,6 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
-    // ── Tipp-Genauigkeit ──
     html += '<div class="stat-section"><h3>🎯 Tipp-Genauigkeit</h3>';
     html += '<table class="stat-wins-table" style="font-size:11px">';
     html += '<tr style="color:var(--muted)"><td>Spieler</td><td style="text-align:center">Exakt</td><td style="text-align:center">Abstand</td><td style="text-align:center">Tendenz</td><td style="text-align:center">Falsch</td><td style="text-align:center">Kein Tipp</td></tr>';
@@ -964,7 +929,6 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
-    // ── Joker-Effizienz ──
     html += '<div class="stat-section"><h3>🃏 Joker-Effizienz</h3>';
     html += '<table class="stat-wins-table" style="font-size:11px">';
     html += '<tr style="color:var(--muted)"><td>Spieler</td><td style="text-align:center">Eingesetzt</td><td style="text-align:center">Getroffen</td><td style="text-align:center">Quote</td><td style="text-align:center">Punkte erzielt</td></tr>';
@@ -982,7 +946,6 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
-    // ── Formkurve (letzte 5 Spieltage) ──
     html += `<div class="stat-section"><h3>🔥 Formkurve <span style="font-size:12px;color:var(--muted);font-weight:400">(Ø Punkte, letzte ${last5.length} Spieltage: ST${last5[0]}–ST${last5[last5.length-1]})</span></h3>`;
     html += '<table class="stat-wins-table">';
     const maxForm = Math.max(...allPlayers.map(p => parseFloat(form[p.id])||0), 1);
@@ -999,7 +962,6 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
-    // ── Spieler-Dropdown für Detailstats ──
     html += '<div class="stat-section"><h3>🔍 Spieler-Details</h3>';
     html += '<div class="stat-player-select" style="margin-bottom:16px">';
     html += '<label>Spieler</label>';
@@ -1009,17 +971,13 @@ async function renderStatistik() {
     html += '<div id="stat-detail-wrap"></div>';
     html += '</div>';
 
-    // ── Legend seit... ──
-    // Proxy: früheste Tipp-Spieltag → Halbserie bestimmen
-    // Halbserien-Definitionen (anpassbar): jede Halbserie = 17 Spieltage
     const HALBSERIEN = [
       { label: '2025/26 Rückserie',  from: 18, to: 34 },
       { label: '2025/26 Hinserie',   from:  1, to: 17 },
-      { label: '2024/25 Rückserie',  from: 52, to: 68 }, // Platzhalter vergangene Saisons
+      { label: '2024/25 Rückserie',  from: 52, to: 68 },
       { label: '2024/25 Hinserie',   from: 35, to: 51 },
     ];
     const legendData = sortedPlayers.map(p => {
-      // Alle Spieltage auf denen dieser Spieler mind. 1 Tipp hat
       const tippedSTs = [];
       for (let st = 1; st <= 68; st++) {
         const tippsForST = allTipps[st] || {};
@@ -1027,9 +985,7 @@ async function renderStatistik() {
         if (hasTipp) tippedSTs.push(st);
       }
       const firstST = tippedSTs.length ? Math.min(...tippedSTs) : null;
-      // Welche Halbserie war das?
       const firstHS = firstST ? (HALBSERIEN.find(h => firstST >= h.from && firstST <= h.to)?.label || 'Saison ' + SAISON) : null;
-      // Wie viele Halbserien mit mind. 1 Tipp?
       const hsSessions = HALBSERIEN.filter(h => {
         for (let st = h.from; st <= h.to; st++) {
           const tippsForST = allTipps[st] || {};
@@ -1052,16 +1008,12 @@ async function renderStatistik() {
     });
     html += '</table></div>';
 
-    html += '</div>'; // stat-wrap
-
+    html += '</div>';
     el.innerHTML = html;
 
-    // Detail-Daten für renderPlayerDetail
     el._ptsPerST     = ptsPerST;
     el._accuracy     = accuracy;
     el._stArr2       = stArr;
-
-    // Chart-Daten als closures für drawRankChart
     el._stArr        = stArr;
     el._rankOverTime = rankOverTime;
     el._colorMap     = colorMap;
@@ -1087,7 +1039,6 @@ function drawRankChart() {
   const cmap   = el._colorMap;
   const n      = el._nPlayers;
 
-  // Canvas size
   const W = canvas.offsetWidth || 860;
   const H = 280;
   canvas.width  = W * window.devicePixelRatio;
@@ -1100,11 +1051,9 @@ function drawRankChart() {
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
 
-  // Background
   ctx.fillStyle = '#181c27';
   ctx.fillRect(0, 0, W, H);
 
-  // Grid lines (ranks 1, 5, 10, ...)
   ctx.strokeStyle = '#2a2f45';
   ctx.lineWidth = 1;
   ctx.font = '10px Barlow, sans-serif';
@@ -1117,7 +1066,6 @@ function drawRankChart() {
     ctx.fillText(r, PAD_L - 4, y + 3);
   }
 
-  // X-axis labels
   ctx.textAlign = 'center';
   ctx.fillStyle = '#9ba3c4';
   stArr.forEach((st, i) => {
@@ -1125,7 +1073,6 @@ function drawRankChart() {
     ctx.fillText('ST' + st, x, H - PAD_B + 14);
   });
 
-  // Draw line for a player
   function drawLine(pid, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
@@ -1142,7 +1089,6 @@ function drawRankChart() {
       first = false;
     });
     ctx.stroke();
-    // Dots
     stArr.forEach((st, i) => {
       const rank = rot[pid]?.[st];
       if (rank === undefined) return;
@@ -1158,7 +1104,6 @@ function drawRankChart() {
   if (p1id) drawLine(p1id, cmap[p1id] || '#00c4a0');
   if (p2id && p2id !== p1id) drawLine(p2id, cmap[p2id] || '#60a5fa');
 
-  // Legend
   const legendEl = document.getElementById('stat-legend');
   if (legendEl) {
     const players = [p1id, p2id && p2id !== p1id ? p2id : null].filter(Boolean);
@@ -1177,154 +1122,137 @@ async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
   el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
   try {
-  const matches = await fetchMatches(currentSpieltag);
-  await ensureAdminScores(currentSpieltag);
-  await fetchFDOrgScores(currentSpieltag); // Live-Scores
-  await loadTipps(currentSpieltag);
+    const matches = await fetchMatches(currentSpieltag);
+    await ensureAdminScores(currentSpieltag);
+    await fetchFDOrgScores(currentSpieltag);
+    await loadTipps(currentSpieltag);
 
-  // compute total pts for ranking
-  const playerPts = computeRankingPts(1, currentSpieltag);
-  const ranked    = rankPlayers(playerPts);
-  const namedPlayers = assignFunNames(ranked);
+    const playerPts = computeRankingPts(1, currentSpieltag);
+    const ranked    = rankPlayers(playerPts);
+    const namedPlayers = assignFunNames(ranked);
 
-  if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
+    if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
-  const now = new Date();
-  const lastFetch = allMatchesTTL[currentSpieltag];
-  const ageStr = lastFetch
-    ? (Math.floor((now - lastFetch) / 60000) < 1
-        ? 'gerade eben'
-        : Math.floor((now - lastFetch) / 60000) + ' Min')
-    : '–';
-  const toggleBtn = `<div style="padding:12px 16px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <button id="toggle-matches-btn" class="toggle-matches-btn${matchesExpanded?' expanded':''}" onclick="toggleMatches()">
-      ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
-    </button>
-    <button onclick="refreshUebersicht()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Aktualisieren</button>
-    <span style="font-size:11px;color:var(--muted)">API: vor ${ageStr}</span>
-    ${(() => {
-      const fd = fdorgData[currentSpieltag];
-      if (!fd) return '<span style="font-size:10px;color:#fbbf24">⏳ football-data.org lädt…</span>';
-      if (fd._error) return `<span style="font-size:10px;color:#f87171" title="${fd._error}">⚠ football-data.org Fehler — prüfe Konsole</span>`;
-      const count = Object.keys(fd).length;
-      return `<span style="font-size:10px;color:#34d399">✓ football-data.org: ${count} Spiele geladen</span>`;
-    })()}
-  </div>`;
+    const now = new Date();
+    const lastFetch = allMatchesTTL[currentSpieltag];
+    const ageStr = lastFetch
+      ? (Math.floor((now - lastFetch) / 60000) < 1 ? 'gerade eben' : Math.floor((now - lastFetch) / 60000) + ' Min')
+      : '–';
+    const toggleBtn = `<div style="padding:12px 16px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button id="toggle-matches-btn" class="toggle-matches-btn${matchesExpanded?' expanded':''}" onclick="toggleMatches()">
+        ${matchesExpanded ? '− Paarungen' : '＋ Paarungen'}
+      </button>
+      <button onclick="refreshUebersicht()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Aktualisieren</button>
+      <span style="font-size:11px;color:var(--muted)">API: vor ${ageStr}</span>
+      ${(() => {
+        const fd = fdorgData[currentSpieltag];
+        if (!fd) return '<span style="font-size:10px;color:#fbbf24">⏳ football-data.org lädt…</span>';
+        if (fd._error) return `<span style="font-size:10px;color:#f87171" title="${fd._error}">⚠ football-data.org Fehler</span>`;
+        const count = Object.keys(fd).length;
+        return `<span style="font-size:10px;color:#34d399">✓ football-data.org: ${count} Spiele geladen</span>`;
+      })()}
+    </div>`;
 
-  let html;
+    let html;
 
-  if (!matchesExpanded) {
-    // ── COLLAPSED: einfache 4-Spalten-Tabelle, passt auf jedes Handy ──
-    html = '<div id="overview-wrap-main" style="padding:0">' + toggleBtn;
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
-    html += '<tr class="match-header"><th style="width:28px"></th><th style="padding:8px 10px;text-align:left">Spieler</th><th style="text-align:right;padding:8px 6px;font-size:11px;color:var(--muted)">Spielt.</th><th style="text-align:right;padding:8px 10px;font-size:11px;color:var(--muted)">Ges.</th></tr>';
-    namedPlayers.forEach((p, idx) => {
-      const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
-      let stPts = 0;
-      matches.forEach(m => {
-        const tip = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
-        const sc  = getMatchScore(m, currentSpieltag);
-        if (tip && sc !== null) { const pts = calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker); if (pts) stPts += pts; }
+    if (!matchesExpanded) {
+      html = '<div id="overview-wrap-main" style="padding:0">' + toggleBtn;
+      html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+      html += '<tr class="match-header"><th style="width:28px"></th><th style="padding:8px 10px;text-align:left">Spieler</th><th style="text-align:right;padding:8px 6px;font-size:11px;color:var(--muted)">Spielt.</th><th style="text-align:right;padding:8px 10px;font-size:11px;color:var(--muted)">Ges.</th></tr>';
+      namedPlayers.forEach((p, idx) => {
+        const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+        let stPts = 0;
+        matches.forEach(m => {
+          const tip = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
+          const sc  = getMatchScore(m, currentSpieltag);
+          if (tip && sc !== null) { const pts = calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker); if (pts) stPts += pts; }
+        });
+        const totalPts = playerPts[p.id] || 0;
+        html += `<tr class="tipper-row">
+          <td class="rank-cell" style="width:28px"><span class="${rankClass}">${idx+1}</span></td>
+          <td class="name-cell" style="padding:0 10px"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
+          <td class="sum-cell" style="padding-right:8px">${stPts}</td>
+          <td class="total-cell" style="padding-right:12px">${totalPts}</td>
+        </tr>`;
       });
-      const totalPts = playerPts[p.id] || 0;
-      html += `<tr class="tipper-row">
-        <td class="rank-cell" style="width:28px"><span class="${rankClass}">${idx+1}</span></td>
-        <td class="name-cell" style="padding:0 10px"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
-        <td class="sum-cell" style="padding-right:8px">${stPts}</td>
-        <td class="total-cell" style="padding-right:12px">${totalPts}</td>
-      </tr>`;
-    });
-    html += '</table></div>';
-  } else {
-    // ── EXPANDED: volle Match-Tabelle ──
-    html = '<div class="overview-wrap" id="overview-wrap-main">' + toggleBtn;
-    html += '<div style="overflow-x:auto"><table id="overview-table-main" class="overview-table">';
-    // Header: team names
-    html += '<tr class="match-header"><th></th><th></th>';
-    matches.forEach(m => {
-      html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
-    });
-    html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
-    // Score row
-    html += '<tr class="match-header"><td></td><td></td>';
-    matches.forEach(m => {
-      const sc = getMatchScore(m, currentSpieltag);
-      const isLive = sc?.live === true;
-    const liveIndicator = isLive ? ' <span style="color:#ef4444;font-size:9px;vertical-align:middle">🔴</span>' : '';
-    html += `<td class="match-score">${sc ? sc.home+':'+sc.away+liveIndicator : '<span style="color:var(--muted)">-:-</span>'}</td>`;
-    });
-    html += '<td></td><td></td></tr>';
-    // Tipper rows
-    namedPlayers.forEach((p, idx) => {
-      const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
-      let stPts = 0;
-      html += `<tr class="tipper-row">
-        <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
-        <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+      html += '</table></div>';
+    } else {
+      html = '<div class="overview-wrap" id="overview-wrap-main">' + toggleBtn;
+      html += '<div style="overflow-x:auto"><table id="overview-table-main" class="overview-table">';
+      html += '<tr class="match-header"><th></th><th></th>';
       matches.forEach(m => {
-        const tip     = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
-        const sc      = getMatchScore(m, currentSpieltag);
-        const kickoff = new Date(m.matchDateTimeUTC);
-        const started = kickoff < new Date();
-        const isOwn   = p.id === currentUser.id;
-        const visible = isOwn || started || isAdmin || sc !== null;
-        if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
-        const pts = sc !== null ? calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker) : null;
-        if (pts !== null) stPts += pts;
-        let tipClass = 'tip-none';
-        if (sc) {
-          if (tip.home==sc.home && tip.away==sc.away) tipClass='tip-correct';
-          else if (getTendency(tip.home,tip.away)===getTendency(sc.home,sc.away)) tipClass='tip-tend';
-          else tipClass='tip-wrong';
-        }
-        const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
-        let ptsHtml = '';
-        if (pts !== null) {
-          const ptsClass = tip.joker?(pts>0?'pts-joker-hit':'pts-joker-miss'):'pts-normal';
-          const label = tip.joker&&pts===0?'🃏':(pts>0?'+'+pts:'0');
-          ptsHtml = `<span class="${ptsClass}" style="font-size:10px;margin-left:3px;font-weight:600">${label}</span>`;
-        }
-        html += `<td class="tip-cell" style="white-space:nowrap"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+        html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
       });
-      const totalPts = playerPts[p.id] || 0;
-      html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
-    });
-    html += '</table></div></div>';
-  }
-  // (single closing tag for collapsed path already included above)
-  el.innerHTML = html;
+      html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
+      html += '<tr class="match-header"><td></td><td></td>';
+      matches.forEach(m => {
+        const sc = getMatchScore(m, currentSpieltag);
+        const isLive = sc?.live === true;
+        const liveIndicator = isLive ? ' <span style="color:#ef4444;font-size:9px;vertical-align:middle">🔴</span>' : '';
+        html += `<td class="match-score">${sc ? sc.home+':'+sc.away+liveIndicator : '<span style="color:var(--muted)">-:-</span>'}</td>`;
+      });
+      html += '<td></td><td></td></tr>';
+      namedPlayers.forEach((p, idx) => {
+        const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+        let stPts = 0;
+        html += `<tr class="tipper-row">
+          <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
+          <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+        matches.forEach(m => {
+          const tip     = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
+          const sc      = getMatchScore(m, currentSpieltag);
+          const kickoff = new Date(m.matchDateTimeUTC);
+          const started = kickoff < new Date();
+          const isOwn   = p.id === currentUser.id;
+          const visible = isOwn || started || isAdmin || sc !== null;
+          if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
+          const pts = sc !== null ? calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker) : null;
+          if (pts !== null) stPts += pts;
+          let tipClass = 'tip-none';
+          if (sc) {
+            if (tip.home==sc.home && tip.away==sc.away) tipClass='tip-correct';
+            else if (getTendency(tip.home,tip.away)===getTendency(sc.home,sc.away)) tipClass='tip-tend';
+            else tipClass='tip-wrong';
+          }
+          const jokerMark = tip.joker ? '<sup style="font-size:9px;color:var(--joker-hit)">J</sup>' : '';
+          let ptsHtml = '';
+          if (pts !== null) {
+            const ptsClass = tip.joker?(pts>0?'pts-joker-hit':'pts-joker-miss'):'pts-normal';
+            const label = tip.joker&&pts===0?'🃏':(pts>0?'+'+pts:'0');
+            ptsHtml = `<span class="${ptsClass}" style="font-size:10px;margin-left:3px;font-weight:600">${label}</span>`;
+          }
+          html += `<td class="tip-cell" style="white-space:nowrap"><span class="tip-badge ${tipClass}">${tip.home}:${tip.away}${jokerMark}</span>${ptsHtml}</td>`;
+        });
+        const totalPts = playerPts[p.id] || 0;
+        html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
+      });
+      html += '</table></div></div>';
+    }
+    el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden. Bitte Seite neu laden.<br><small>' + e.message + '</small></div>';
+    el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden.<br><small>' + e.message + '</small></div>';
     console.error('renderUebersicht error:', e);
   }
 }
 
-// ── RANKING (Gesamt / Halbserien) ──
-// Kein OpenLigaDB-Request: iteriert über bulk-geladene allTipps.
-// Score-Quelle: allScores (admin_scores, bulk) → allMatches (gecacht, falls vorhanden).
+// ── RANKING ──
 function computeRankingPts(fromST, toST) {
   const pts = {};
   allPlayers.forEach(p => { pts[p.id] = 0; });
   const limit = Math.min(toST, currentSpieltag);
-
   for (let st = fromST; st <= limit; st++) {
     const tippsForST = allTipps[st] || {};
-    // Alle Match-IDs dieses Spieltags aus den Tipps ableiten
     Object.keys(tippsForST).forEach(matchIdStr => {
       const matchId = +matchIdStr;
-
-      // Score: erst admin_scores (lokal, sicher), dann gecachte API-Daten
       let sc = (allScores[st] && allScores[st][matchId]) ? allScores[st][matchId] : null;
       if (!sc && Array.isArray(allMatches[st])) {
         const m = allMatches[st].find(x => x.matchID === matchId);
         if (m && m.matchIsFinished && m.matchResults && m.matchResults.length) {
-          const fin = m.matchResults.find(r => r.resultTypeID === 2)
-                   || m.matchResults[m.matchResults.length - 1];
+          const fin = m.matchResults.find(r => r.resultTypeID === 2) || m.matchResults[m.matchResults.length - 1];
           sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
         }
       }
-      if (!sc) return; // kein Ergebnis → überspringen
-
+      if (!sc) return;
       allPlayers.forEach(p => {
         const tip = tippsForST[matchId] && tippsForST[matchId][p.id];
         if (!tip) return;
@@ -1333,38 +1261,14 @@ function computeRankingPts(fromST, toST) {
       });
     });
   }
-  return pts; // synchron – kein await nötig
+  return pts;
 }
 function rankPlayers(pts) {
   return [...allPlayers].sort((a,b) => (pts[b.id]||0) - (pts[a.id]||0))
     .map(p => ({ ...p, pts: pts[p.id]||0 }));
 }
-async function renderRanking(tabId, fromST, toST) {
-  const el = document.getElementById('tab-' + tabId);
-  el.innerHTML = '<div class="loading">Berechne Tabelle</div>';
-  try {
-  const pts    = computeRankingPts(fromST, toST);
-  const ranked = rankPlayers(pts);
-  const named  = assignFunNames(ranked);
-  let html = '<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';
-  html += '<tr class="match-header"><th style="width:36px"></th><th style="padding:8px 12px">Spieler</th><th style="text-align:right;padding:8px 12px">Punkte</th></tr>';
-  named.forEach((p, i) => {
-    const rc = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    html += `<tr class="tipper-row">
-      <td class="rank-cell"><span class="${rc}">${i+1}</span></td>
-      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
-      <td class="total-cell" style="padding-right:20px">${p.pts}</td>
-    </tr>`;
-  });
-  html += '</table></div>';
-  el.innerHTML = html;
-  } catch(e) {
-    el.innerHTML = '<div class="loading" style="color:var(--danger)">Fehler beim Laden.<br><small>' + e.message + '</small></div>';
-    console.error('renderRanking error:', e);
-  }
-}
 
-// ── SAISONTABELLE ──
+// ── FIX 3: SAISONTABELLE mit Refresh-Button ──
 async function renderSaison() {
   const el = document.getElementById('tab-saison');
   el.innerHTML = '<div class="loading">Lade Saisontabelle…</div>';
@@ -1374,8 +1278,6 @@ async function renderSaison() {
     const stArr = [];
     for (let s = from; s <= to; s++) stArr.push(s);
 
-    // Punkte pro Spieler pro Spieltag (nutzt nur bulk-gecachte Daten)
-    // playerPtsPerST[playerId][st] = punkte
     const playerPtsPerST = {};
     allPlayers.forEach(p => { playerPtsPerST[p.id] = {}; });
 
@@ -1387,8 +1289,7 @@ async function renderSaison() {
         if (!sc && Array.isArray(allMatches[st])) {
           const m = allMatches[st].find(x => x.matchID === matchId);
           if (m?.matchIsFinished && m.matchResults?.length) {
-            const fin = m.matchResults.find(r => r.resultTypeID === 2)
-                     || m.matchResults[m.matchResults.length - 1];
+            const fin = m.matchResults.find(r => r.resultTypeID === 2) || m.matchResults[m.matchResults.length - 1];
             sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
           }
         }
@@ -1402,32 +1303,27 @@ async function renderSaison() {
       });
     });
 
-    // Gesamtpunkte + Sortierung
     const totals = {};
     allPlayers.forEach(p => {
       totals[p.id] = stArr.reduce((s, st) => s + (playerPtsPerST[p.id][st] || 0), 0);
     });
-    const ranked = [...allPlayers]
-      .sort((a, b) => totals[b.id] - totals[a.id])
-      .map(p => ({ ...p, pts: totals[p.id] }));
+    const ranked = [...allPlayers].sort((a, b) => totals[b.id] - totals[a.id]).map(p => ({ ...p, pts: totals[p.id] }));
     const named  = assignFunNames(ranked);
 
-    const topPts = named[0]?.pts ?? 0;
-    const botPts = named[named.length-1]?.pts ?? 0;
-    const half   = Math.floor(named.length / 2); // 15 Spieler → 7 Gewinner
+    const half = Math.floor(named.length / 2);
 
-    // Punktfarbe
     function ptsCls(pts) {
-      if (pts === 6) return 'p6';
-      if (pts === 4) return 'p4';
-      if (pts === 3) return 'p3';
-      if (pts === 2) return 'p2';
-      if (pts === 1) return 'p1';
-      return 'p0';
+      if (pts === 6) return 'p6'; if (pts === 4) return 'p4'; if (pts === 3) return 'p3';
+      if (pts === 2) return 'p2'; if (pts === 1) return 'p1'; return 'p0';
     }
 
-    // Header
-    let html = '<div class="saison-wrap"><table class="saison-table">';
+    // FIX 3: Refresh-Button über der Tabelle
+    let html = `<div class="saison-wrap">
+      <div style="padding:0 0 12px;display:flex;align-items:center;gap:8px">
+        <button onclick="refreshAll()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Neu laden</button>
+        <span style="font-size:11px;color:var(--muted)">Tipps &amp; Ergebnisse aktualisieren</span>
+      </div>
+      <table class="saison-table">`;
     html += '<thead><tr>';
     html += '<th style="width:26px"></th>';
     html += '<th class="name-th">Spieler</th>';
@@ -1435,7 +1331,6 @@ async function renderSaison() {
     html += '<th style="border-left:1px solid var(--border)">∑</th>';
     html += '</tr></thead><tbody>';
 
-    // Rows
     named.forEach((p, i) => {
       const isWinner = i < half;
       const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
@@ -1445,11 +1340,7 @@ async function renderSaison() {
       html += `<td class="s-name"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
       stArr.forEach(st => {
         const pts = playerPtsPerST[p.id][st];
-        if (pts === undefined) {
-          html += `<td class="p0">–</td>`;
-        } else {
-          html += `<td class="${ptsCls(pts)}">${pts}</td>`;
-        }
+        html += pts === undefined ? `<td class="p0">–</td>` : `<td class="${ptsCls(pts)}">${pts}</td>`;
       });
       html += `<td class="s-sum">${totals[p.id]}</td>`;
       html += '</tr>';
@@ -1513,7 +1404,6 @@ async function renderTippen() {
 }
 function onJokerChange(cb, matchID) {
   if (!cb.checked) { cb.closest('.joker-toggle').classList.remove('active'); return; }
-  // Uncheck all others
   document.querySelectorAll('[id^="tj-"]').forEach(x => { if (x !== cb) { x.checked = false; x.closest('.joker-toggle').classList.remove('active'); } });
   cb.closest('.joker-toggle').classList.add('active');
 }
@@ -1535,9 +1425,8 @@ async function saveTipps(matchIDs) {
   if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
   const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
   if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+error.message; return; }
-  delete allTipps[currentSpieltag]; // invalidate cache
+  delete allTipps[currentSpieltag];
   await loadTipps(currentSpieltag);
-  // Also re-enable uebersicht re-render to show updated totals
   tabLoaded['uebersicht'] = false;
   msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
 }
@@ -1591,7 +1480,6 @@ function renderPlayerDetail() {
 
   let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">';
 
-  // Punkte nach Mannschaften
   html += '<div>';
   html += '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.5px">PUNKTE NACH MANNSCHAFTEN</div>';
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
@@ -1609,7 +1497,6 @@ function renderPlayerDetail() {
   }
   html += '</table></div>';
 
-  // Aus welchen Tipps kommen die Punkte?
   html += '<div>';
   html += '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;letter-spacing:.5px">AUS WELCHEN TIPPS KOMMEN DIE PUNKTE?</div>';
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
@@ -1661,7 +1548,6 @@ async function loadKabPosts() {
     .order('pinned', { ascending: false })
     .order('created_at', { ascending: false });
   kabPosts = data || [];
-  // Badge: neue Posts seit letztem Besuch
   const badge = document.getElementById('kab-badge');
   if (badge && kabSeenCount < kabPosts.length) {
     const unseen = kabPosts.length - kabSeenCount;
@@ -1683,7 +1569,6 @@ function renderKabUI() {
 
   let html = '<div class="kab-wrap">';
 
-  // Compose
   if (!isAdmin) {
     html += `<div class="kab-compose">
       <textarea id="kab-input" placeholder="Was gibt's Neues in der Kabine…"></textarea>
@@ -1704,7 +1589,6 @@ function renderKabUI() {
     </div>`;
   }
 
-  // Filter-Leiste
   const filters = [['alle','Alle'],['admin','Admin'],['gepinnt','📌 Gepinnt'],['meine','Meine']];
   html += '<div class="kab-filters">';
   filters.forEach(([k,l]) => {
@@ -1712,7 +1596,6 @@ function renderKabUI() {
   });
   html += '</div>';
 
-  // Posts
   if (!filtered.length) {
     html += '<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Noch keine Beiträge.</div>';
   }
@@ -1737,7 +1620,6 @@ function renderKabUI() {
       </div>
       <div class="kab-body">${post.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
 
-    // Reaktionen
     if (Object.keys(reactions).length) {
       html += '<div class="kab-reaction-bar">';
       Object.entries(reactions).forEach(([emoji, users]) => {
@@ -1747,10 +1629,8 @@ function renderKabUI() {
       html += '</div>';
     }
 
-    // Aktionen
     html += '<div class="kab-actions">';
     html += `<button class="kab-action-btn${liked?' liked':''}" onclick="kabLike('${post.id}')">👍 ${likes.length || ''}</button>`;
-    // Emoji-Reaktionen
     KAB_EMOJIS.slice(0,6).forEach(e => {
       html += `<button class="kab-action-btn" onclick="kabReact('${post.id}','${e}')" style="padding:4px 6px;font-size:14px">${e}</button>`;
     });
@@ -1761,7 +1641,6 @@ function renderKabUI() {
     }
     html += '</div>';
 
-    // Kommentare
     html += '<div class="kab-comments">';
     comments.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(c => {
       html += `<div class="kab-comment">
@@ -1776,11 +1655,10 @@ function renderKabUI() {
       <input type="text" id="kab-ci-${post.id}" placeholder="Kommentar…" onkeydown="if(event.key==='Enter')kabComment('${post.id}')">
       <button onclick="kabComment('${post.id}')">↩</button>
     </div>`;
-    html += '</div>'; // kab-comments
-    html += '</div>'; // kab-post
+    html += '</div></div>';
   });
 
-  html += '</div>'; // kab-wrap
+  html += '</div>';
   el.innerHTML = html;
 }
 
@@ -1793,10 +1671,7 @@ function kabInsertEmoji(e) {
   ta.focus();
 }
 
-function kabSetFilter(f) {
-  kabFilter = f;
-  renderKabUI();
-}
+function kabSetFilter(f) { kabFilter = f; renderKabUI(); }
 
 async function kabPost() {
   const ta = document.getElementById('kab-input');
@@ -1863,7 +1738,6 @@ async function kabComment(postId) {
 function renderRegeln() {
   const el = document.getElementById('tab-regeln');
   el.innerHTML = `<div class="regeln-wrap">
-
     <div class="regeln-section">
       <div class="regeln-section-header">
         <span class="icon">🎯</span>
@@ -1879,7 +1753,6 @@ function renderRegeln() {
         </ul>
       </div>
     </div>
-
     <div class="regeln-section">
       <div class="regeln-section-header">
         <span class="icon">🏆</span>
@@ -1909,7 +1782,6 @@ function renderRegeln() {
         </div>
       </div>
     </div>
-
   </div>`;
 }
 
@@ -2018,16 +1890,14 @@ async function loadAdminScores() {
   const matches = await fetchMatches(currentSpieltag);
   const wrap = document.getElementById('admin-scores-wrap');
   if (!wrap) return;
-  // load existing overrides from DB (force-reload, bypassing cache)
   if (db) {
-    allScores[currentSpieltag] = {}; // force fresh load
+    allScores[currentSpieltag] = {};
     const { data } = await db.from('admin_scores').select('*').eq('spieltag', currentSpieltag);
     (data||[]).forEach(r => { allScores[currentSpieltag][r.match_id] = { home: r.score_home, away: r.score_away }; });
   }
   wrap.innerHTML = matches.map(m => {
     const sc = allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID];
     const apiSc = getMatchScore(m, currentSpieltag);
-    const hasOverride = sc && (!apiSc || sc.home !== apiSc.home || sc.away !== apiSc.away);
     return `<div class="score-item">
       <span class="match-label">${m.team1.shortName} vs ${m.team2.shortName}</span>
       <input type="number" id="ah-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.home:'-'}" value="${sc?sc.home:''}">
@@ -2041,7 +1911,6 @@ async function deleteAdminScore(matchID) {
   if (!confirm('Manuelles Ergebnis löschen? Danach gilt wieder das API-Ergebnis.')) return;
   if (db) await db.from('admin_scores').delete().eq('spieltag', currentSpieltag).eq('match_id', matchID);
   if (allScores[currentSpieltag]) delete allScores[currentSpieltag][matchID];
-  // clear inputs
   const h = document.getElementById('ah-'+matchID);
   const a = document.getElementById('aa-'+matchID);
   if (h) h.value = '';
@@ -2063,10 +1932,8 @@ async function saveAdminScores() {
   });
   if (db && rows.length) {
     await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
-    // Refresh bulk cache for this spieltag
     delete allScores[currentSpieltag];
     await ensureAdminScores(currentSpieltag);
-    // Invalidate overview cache so it re-renders with new scores
     tabLoaded['uebersicht'] = false;
     tabLoaded['saison'] = false;
   }
