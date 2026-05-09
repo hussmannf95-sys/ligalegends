@@ -556,7 +556,9 @@ async function ensureAdminScores(spieltag) {
 function fdorgNorm(name) {
   return (name||'').toLowerCase()
     .replace(/borussia mönchengladbach/,'gladbach').replace(/mönchengladbach/,'gladbach')
-    .replace(/bayer 04 /,'bayer ').replace(/fc (?=\w)/,'').replace(/1\. /,'')
+    .replace(/bayer 04 /,'bayer ')
+    .replace(/\b(18|19|20)\d{2}\b\s*/g, '')  // "1899 ", "2000" etc. entfernen (z.B. TSG 1899 Hoffenheim)
+    .replace(/fc (?=\w)/,'').replace(/1\. /,'')
     .replace(/vfb /,'').replace(/vfl /,'').replace(/rb /,'')
     .replace(/bsc /,'').replace(/sv /,'').replace(/sc /,'')
     .replace(/tsg /,'').replace(/fsv /,'').replace(/\s+/g,' ').trim();
