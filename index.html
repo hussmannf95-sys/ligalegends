@@ -303,7 +303,8 @@ const ADMIN_PASSWORD = 'liga1992admin';
 // Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
 const LIGA   = 'bl1';
 const SAISON = '2025'; // 2025 = Saison 2025/26
-const FDORG_KEY = '3b0ccdb93f3249feb9c04be90db83fab'; // football-data.org API key
+const FDORG_KEY  = '3b0ccdb93f3249feb9c04be90db83fab'; // nur noch in Edge Function genutzt
+const EDGE_URL   = 'https://wwwhaoaeqlgltpwoutyt.supabase.co/functions/v1/scores';
 const RUECKSERIE_FROM = 18; // erster Spieltag der Rückserie
 const RUECKSERIE_TO   = 34; // letzter Spieltag der Rückserie
 const SAISON_LABEL    = '2025/26 Rückserie';
@@ -591,35 +592,31 @@ function fdorgNorm(name) {
 async function fetchFDOrgScores(spieltag) {
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 7000);
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     const fdSaison = spieltag <= 17 ? String(parseInt(SAISON) - 1) : SAISON;
+    // Supabase Edge Function als Proxy → kein CORS, API-Key serverseitig
     const r = await fetch(
-      `https://api.football-data.org/v4/competitions/BL1/matches?matchday=${spieltag}&season=${fdSaison}`,
-      { headers: { 'X-Auth-Token': FDORG_KEY }, signal: ctrl.signal }
+      `${EDGE_URL}?spieltag=${spieltag}&saison=${fdSaison}`,
+      { signal: ctrl.signal }
     );
     clearTimeout(timer);
     if (!r.ok) {
-      console.warn('football-data.org HTTP', r.status, await r.text());
+      console.warn('Edge Function Fehler', r.status);
       fdorgData[spieltag] = fdorgData[spieltag] || { _error: r.status };
       return;
     }
     const data = await r.json();
+    if (data.error) {
+      console.warn('Edge API-Fehler:', data.error);
+      fdorgData[spieltag] = fdorgData[spieltag] || { _error: data.error };
+      return;
+    }
     const map = {};
     (data.matches || []).forEach(m => {
-      const k = fdorgNorm(m.homeTeam.name) + '|' + fdorgNorm(m.awayTeam.name);
-      // fullTime = Endergebnis oder aktueller Stand (live)
-      // halfTime = Stand zur Halbzeit
-      const ft = m.score?.fullTime;
-      const ht = m.score?.halfTime;
-      // Nimm fullTime wenn vorhanden, sonst halfTime (nur HZ oder Pause)
-      const home = ft?.home ?? ht?.home ?? null;
-      const away = ft?.away ?? ht?.away ?? null;
-      map[k] = {
-        home,
-        away,
-        status: m.status,
-        utcDate: m.utcDate
-      };
+      const k = fdorgNorm(m.home) + '|' + fdorgNorm(m.away);
+      const home = m.ft?.home ?? m.ht?.home ?? null;
+      const away = m.ft?.away ?? m.ht?.away ?? null;
+      map[k] = { home, away, status: m.status, utcDate: m.utcDate };
     });
     fdorgData[spieltag]      = map;
     fdorgFetchedAt[spieltag] = Date.now();
