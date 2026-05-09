@@ -564,7 +564,12 @@ function fdorgNorm(name) {
     .replace(/tsg /,'').replace(/fsv /,'').replace(/\s+/g,' ').trim();
 }
 
+const FDORG_CACHE_TTL = 30 * 1000; // 30 Sekunden
+
 async function fetchFDOrgScores(spieltag) {
+  // Nicht neu fetchen wenn Daten frisch sind (< 30s alt)
+  const age = Date.now() - (fdorgFetchedAt[spieltag] || 0);
+  if (fdorgData[spieltag] && !fdorgData[spieltag]._error && age < FDORG_CACHE_TTL) return;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
@@ -637,7 +642,9 @@ function fdorgLookup(match, spieltag) {
     return d.home !== null ? { home: d.home, away: d.away, live: d.status==='IN_PLAY'||d.status==='PAUSED' } : null;
   }
   for (const [key, val] of Object.entries(map)) {
+    if (!key.includes('|')) continue; // _error-Keys überspringen
     const [a, b] = key.split('|');
+    if (!b) continue;
     if (a.slice(0,6) === k1.slice(0,6) && b.slice(0,6) === k2.slice(0,6)) {
       return val.home !== null ? { home: val.home, away: val.away, live: val.status==='IN_PLAY'||val.status==='PAUSED' } : null;
     }
@@ -729,12 +736,13 @@ function toggleMatches() {
 async function refreshUebersicht() {
   delete allMatches[currentSpieltag];
   delete allMatchesTTL[currentSpieltag];
-  delete fdorgData[currentSpieltag];
-  delete fdorgFetchedAt[currentSpieltag];
-  delete allTipps[currentSpieltag];   // NEU: Tipps neu laden
-  delete allScores[currentSpieltag];  // NEU: Admin-Scores neu laden
+  // fdorgData wird NICHT gelöscht – Live-Scores bleiben erhalten
+  // Nur Supabase-Daten (Tipps + Admin-Scores) neu laden
+  delete allTipps[currentSpieltag];
+  delete allScores[currentSpieltag];
   tabLoaded['uebersicht'] = false;
   await Promise.all([loadTipps(currentSpieltag), ensureAdminScores(currentSpieltag)]);
+  // fdorg nur neu holen wenn Daten älter als 30s (TTL in fetchFDOrgScores greift)
   await loadTab('uebersicht');
 }
 
