@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LigaLegends seit 1992 – by hdh</title>
+
+<!-- ══ SECURITY HEADERS ══ -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.openligadb.de; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -26,52 +33,32 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  /* ── TOP NAV ── */
-  header {
-    background: var(--header-bg);
-    border-bottom: 2px solid var(--accent);
-    padding: 0 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 56px; position: sticky; top: 0; z-index: 100;
-  }
+  header { background: var(--header-bg); border-bottom: 2px solid var(--accent); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
   .logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: 1px; color: var(--accent); }
   .logo span { color: var(--text); }
   .user-pill { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
   .user-pill strong { color: var(--text); }
   .btn-sm { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: 'Barlow', sans-serif; transition: all .15s; }
   .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── TABS ── */
   .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); background: var(--surface); padding: 0 20px; overflow-x: auto; }
   .tab { padding: 14px 20px; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: .5px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; color: var(--muted); white-space: nowrap; transition: all .15s; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* ── SPIELTAG NAV ── */
   .spieltag-nav { display: flex; align-items: center; gap: 6px; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .spieltag-nav span { font-size: 13px; color: var(--muted); margin-right: 4px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: .5px; }
   .st-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; transition: all .12s; }
   .st-btn:hover { border-color: var(--accent); color: var(--accent); }
   .st-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
-
-  /* ── OVERVIEW TABLE ── */
   .overview-wrap { overflow-x: auto; padding: 20px; }
   .overview-table { border-collapse: collapse; min-width: 900px; width: 100%; font-size: 13px; }
   .overview-table th, .overview-table td { padding: 0; }
-
-  /* Match header row */
   .match-header th { background: var(--surface2); border-bottom: 1px solid var(--border); }
   .match-col-header { padding: 6px 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .3px; min-width: 68px; }
   .match-score { font-size: 14px; font-weight: 700; color: var(--text); padding: 4px 8px 8px; text-align: center; }
-
-  /* Tipper row */
   .tipper-row td { border-bottom: 1px solid var(--border); height: 38px; }
   .tipper-row:hover td { background: rgba(255,255,255,.02); }
   .rank-cell { text-align: center; width: 36px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--muted); }
-  .rank-1 { color: #ffd700; }
-  .rank-2 { color: #c0c0c0; }
-  .rank-3 { color: #cd7f32; }
+  .rank-1 { color: #ffd700; } .rank-2 { color: #c0c0c0; } .rank-3 { color: #cd7f32; }
   .name-cell { padding: 0 12px; min-width: 130px; }
   .name-cell .realname { font-weight: 600; font-size: 13px; }
   .name-cell .funname { font-size: 10px; color: var(--muted); }
@@ -81,16 +68,10 @@
   .tip-tend { background: rgba(245,166,35,.12); color: var(--tend); border: 1px solid rgba(245,166,35,.3); }
   .tip-wrong { background: rgba(232,65,65,.1); color: var(--wrong); border: 1px solid rgba(232,65,65,.25); }
   .tip-none { color: var(--muted); font-size: 12px; }
-  .pts-cell { text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; }
-  .pts-joker-hit { color: var(--joker-hit); }
-  .pts-joker-miss { color: var(--joker-miss); }
-  .pts-normal { color: var(--text); }
-  .joker-indicator { font-size: 9px; vertical-align: super; }
+  .pts-joker-hit { color: var(--joker-hit); } .pts-joker-miss { color: var(--joker-miss); } .pts-normal { color: var(--text); }
   .sum-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-align: right; padding-right: 8px; color: var(--accent); min-width: 50px; }
   .total-cell { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; text-align: right; padding-right: 12px; color: var(--text); min-width: 60px; }
   .col-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--muted); text-align: right; padding-right: 8px; }
-
-  /* ── TIPPS INPUT ── */
   .tippen-wrap { padding: 20px; max-width: 700px; }
   .tippen-wrap h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
   .match-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
@@ -108,8 +89,6 @@
   .info-box { background: rgba(0,196,160,.08); border: 1px solid rgba(0,196,160,.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
   .info-box strong { color: var(--accent); }
   .joker-warning { font-size: 11px; color: var(--joker-hit); margin-top: 4px; }
-
-  /* ── MAYMAY ── */
   .maumau-wrap { padding: 20px; overflow-x: auto; }
   .maumau-table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 500px; }
   .maumau-table th { background: var(--surface2); padding: 10px 12px; text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: .5px; color: var(--muted); border-bottom: 2px solid var(--border); }
@@ -118,8 +97,6 @@
   .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
   .badge-zahlt { background: rgba(232,65,65,.15); color: var(--wrong); }
   .badge-kassiert { background: rgba(0,196,160,.12); color: var(--correct); }
-
-  /* ── ADMIN ── */
   .admin-wrap { padding: 20px; max-width: 800px; }
   .admin-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
   .admin-section h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
@@ -133,13 +110,10 @@
   .player-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 8px 12px; }
   .player-item .pname { flex: 1; font-weight: 600; font-size: 14px; }
   .player-item .ppin { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 2px; }
-  .scores-grid { display: grid; gap: 10px; }
   .score-item { display: flex; align-items: center; gap: 10px; }
   .score-item .match-label { flex: 1; font-size: 13px; color: var(--muted); }
   .score-item input { width: 44px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text); padding: 5px 6px; font-size: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-align: center; outline: none; }
   .score-item input:focus { border-color: var(--accent); }
-
-  /* ── LOGIN ── */
   .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; }
   .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 40px; width: 340px; max-width: 90vw; }
   .login-box h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
@@ -150,16 +124,12 @@
   .login-err { color: var(--danger); font-size: 12px; margin-top: 6px; }
   .login-switch { margin-top: 16px; text-align: center; font-size: 12px; color: var(--muted); }
   .login-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
-
-  /* ── LOADING / EMPTY ── */
   .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 18px; letter-spacing: 1px; }
   .loading::after { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 8px; animation: blink 1s infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
   .msg { padding: 14px 16px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
   .msg-ok { background: rgba(0,196,160,.1); color: var(--accent); border: 1px solid rgba(0,196,160,.2); }
   .msg-err { background: rgba(232,65,65,.1); color: var(--danger); border: 1px solid rgba(232,65,65,.2); }
-
-  /* ── RESPONSIVE ── */
   @media(max-width:600px) { .tabs { padding: 0 8px; } .tab { padding: 12px 12px; font-size: 13px; } }
 </style>
 </head>
@@ -169,28 +139,14 @@
      CONFIGURATION – edit here
      ════════════════════════════════ -->
 <script>
-// ┌──────────────────────────────────┐
-// │  SUPABASE CONFIG                 │
-// │  Replace with your project data  │
-// └──────────────────────────────────┘
 const SUPABASE_URL = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
-
-// Admin password (change this!)
-const ADMIN_PASSWORD = 'Tippen92!;
-
-// Bundesliga season for OpenLigaDB (bl1 = 1. Bundesliga)
+/* ADMIN_PASSWORD wurde entfernt – Prüfung erfolgt serverseitig via Supabase RPC */
 const LIGA = 'bl1';
-const SAISON = '2025'; // 2025 = Saison 2025/26
-
-// Points system
-const PTS_CORRECT = 3;   // exact score
-const PTS_TEND = 1;      // correct tendency (W/D/L)
-const PTS_JOKER = 2;     // bonus if joker & correct tendency
-
-// Fun names by rank tier (for N players, assigned from top to bottom)
-// Index 0 = 1st place (Prophet, unique), last = last place (Ehren-Laie, unique)
-// Middle names repeat as needed
+const SAISON = '2025';
+const PTS_CORRECT = 3;
+const PTS_TEND = 1;
+const PTS_JOKER = 2;
 const FUN_NAMES_MIDDLE = [
   'Orakel', 'Stratege', 'Kenner', 'Taktiker', 'Analyst',
   'Beobachter', 'Mitläufer', 'Glücksritter', 'Zufallstreffer', 'Hobbykicker'
@@ -202,7 +158,7 @@ const FUN_NAMES_MIDDLE = [
   <div class="login-box">
     <h1>⚽ LigaLegends</h1>
     <p>seit 1992 – by hdh | Tippen – Siegen – Leiden</p>
-    <input id="login-name" type="text" placeholder="Dein Name" autocomplete="off">
+    <input id="login-name" type="text" placeholder="Dein Name" autocomplete="off" maxlength="50">
     <input id="login-pin" type="password" placeholder="PIN (4-stellig)" maxlength="6" inputmode="numeric">
     <button onclick="doLogin()">Einloggen</button>
     <div id="login-err" class="login-err"></div>
@@ -240,13 +196,11 @@ const FUN_NAMES_MIDDLE = [
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
 
-  <!-- Spieltag Nav (shown for overview tabs) -->
   <div id="spieltag-nav" class="spieltag-nav" style="display:none">
     <span>Spieltag</span>
     <div id="st-buttons"></div>
   </div>
 
-  <!-- Tab Contents -->
   <div id="tab-uebersicht"><div class="loading">Lade Spieltag</div></div>
   <div id="tab-gesamt" style="display:none"><div class="loading">Lade Tabelle</div></div>
   <div id="tab-erste-halbserie" style="display:none"><div class="loading">Lade 1. Halbserie</div></div>
@@ -256,11 +210,56 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-admin" style="display:none"></div>
 </div>
 
-<!-- ════════════════════════════════
-     MAIN SCRIPT
-     ════════════════════════════════ -->
 <script>
-// ── Init Supabase ──
+// ══════════════════════════════════════
+// SECURITY HELPERS
+// ══════════════════════════════════════
+
+// XSS-Schutz: alle Nutzerdaten durch esc() bevor sie in innerHTML landen
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// Rate Limiter: max 5 Login-Versuche pro 5 Minuten
+const LoginGuard = {
+  key: 'loginAttempts', max: 5, window: 300000,
+  check() {
+    const now = Date.now();
+    const data = JSON.parse(localStorage.getItem(this.key) || '[]');
+    const recent = data.filter(t => now - t < this.window);
+    if (recent.length >= this.max) {
+      const wait = Math.ceil((this.window - (now - recent[0])) / 1000);
+      throw new Error(`Zu viele Versuche. Bitte ${wait}s warten.`);
+    }
+    recent.push(now);
+    localStorage.setItem(this.key, JSON.stringify(recent));
+  },
+  reset() { localStorage.removeItem(this.key); }
+};
+
+// Input-Validierung
+const Validator = {
+  score(v) {
+    const n = parseInt(v, 10);
+    if (isNaN(n) || n < 0 || n > 20) throw new Error('Ungültiges Ergebnis (0–20 erlaubt)');
+    return n;
+  },
+  name(v) {
+    if (typeof v !== 'string') throw new Error('Kein String');
+    const clean = v.trim().slice(0, 50);
+    if (!/^[a-zA-ZäöüÄÖÜß0-9 _\-]+$/.test(clean)) throw new Error('Ungültige Zeichen im Namen');
+    return clean;
+  }
+};
+
+// ══════════════════════════════════════
+// SUPABASE INIT
+// ══════════════════════════════════════
 const { createClient } = supabase;
 let db;
 try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase not configured'); }
@@ -272,9 +271,9 @@ let currentTab = 'uebersicht';
 let currentSpieltag = 1;
 let maxSpieltag = 34;
 let allPlayers = [];
-let allTipps = {};       // { spieltag: { matchId: { playerId: {home,away,joker} } } }
-let allMatches = {};     // { spieltag: [{...OpenLigaDB match}] }
-let allScores = {};      // { spieltag: { matchId: {home,away} } } – admin overrides
+let allTipps = {};
+let allMatches = {};
+let allScores = {};
 let maumauData = [];
 let tabLoaded = {};
 
@@ -295,7 +294,9 @@ function assignFunNames(players) {
   return result;
 }
 
-// ── Login ──
+// ══════════════════════════════════════
+// LOGIN – serverseitige Prüfung via RPC
+// ══════════════════════════════════════
 function showAdminLogin() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('admin-login-overlay').style.display = 'flex';
@@ -306,20 +307,41 @@ function showPlayerLogin() {
 }
 
 async function doLogin() {
-  const name = document.getElementById('login-name').value.trim();
-  const pin = document.getElementById('login-pin').value.trim();
-  if (!name || !pin) { document.getElementById('login-err').textContent = 'Name und PIN eingeben.'; return; }
+  const errEl = document.getElementById('login-err');
+  try { LoginGuard.check(); } catch(e) { errEl.textContent = e.message; return; }
+
+  const nameRaw = document.getElementById('login-name').value;
+  const pin     = document.getElementById('login-pin').value.trim();
+
+  let name;
+  try { name = Validator.name(nameRaw); } catch(e) { errEl.textContent = 'Ungültiger Name.'; return; }
+  if (!pin || !/^\d{4,6}$/.test(pin)) { errEl.textContent = 'PIN muss 4–6 Ziffern haben.'; return; }
+
   if (!db) { bootDemoMode(name); return; }
+
   const { data, error } = await db.from('players').select('*').ilike('name', name).eq('pin', pin).single();
-  if (error || !data) { document.getElementById('login-err').textContent = 'Name oder PIN falsch.'; return; }
+  if (error || !data) { errEl.textContent = 'Name oder PIN falsch.'; return; }
+
+  LoginGuard.reset();
   currentUser = data;
   isAdmin = false;
   bootApp();
 }
 
 async function doAdminLogin() {
+  const errEl = document.getElementById('admin-login-err');
+  try { LoginGuard.check(); } catch(e) { errEl.textContent = e.message; return; }
+
   const pw = document.getElementById('admin-pw').value;
-  if (pw !== ADMIN_PASSWORD) { document.getElementById('admin-login-err').textContent = 'Falsches Passwort.'; return; }
+  if (!pw) { errEl.textContent = 'Passwort eingeben.'; return; }
+
+  if (!db) { errEl.textContent = 'Supabase nicht verbunden.'; return; }
+
+  // Passwort wird NICHT im Client verglichen – Supabase RPC prüft serverseitig
+  const { data, error } = await db.rpc('check_admin_password', { input_pw: pw });
+  if (error || !data) { errEl.textContent = 'Falsches Passwort.'; return; }
+
+  LoginGuard.reset();
   isAdmin = true;
   currentUser = { id: 'admin', name: 'Admin', funname: '' };
   bootApp();
@@ -344,21 +366,19 @@ async function bootApp() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('admin-login-overlay').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('header-user').textContent = currentUser.name + (isAdmin ? ' (Admin)' : '');
+  document.getElementById('header-user').textContent = esc(currentUser.name) + (isAdmin ? ' (Admin)' : '');
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
   await detectCurrentSpieltag();
   switchTab('uebersicht');
 }
 
-// ── Load players ──
 async function loadPlayers() {
   if (!db) { allPlayers = [{id:'demo',name:'Demo',pin:'0000',total_pts:0}]; return; }
   const { data } = await db.from('players').select('*').order('name');
   allPlayers = data || [];
 }
 
-// ── OpenLigaDB ──
 async function fetchMatches(spieltag) {
   if (allMatches[spieltag]) return allMatches[spieltag];
   try {
@@ -377,9 +397,7 @@ async function detectCurrentSpieltag() {
   } catch(e) { currentSpieltag = 1; }
 }
 
-// ── Score helper ──
 function getMatchScore(match, spieltag) {
-  // Admin override first
   if (allScores[spieltag] && allScores[spieltag][match.matchID]) {
     return allScores[spieltag][match.matchID];
   }
@@ -391,9 +409,7 @@ function getMatchScore(match, spieltag) {
 }
 
 function getTendency(home, away) {
-  if (home > away) return 'H';
-  if (away > home) return 'A';
-  return 'D';
+  if (home > away) return 'H'; if (away > home) return 'A'; return 'D';
 }
 
 function calcPoints(tipHome, tipAway, realHome, realAway, joker) {
@@ -405,7 +421,6 @@ function calcPoints(tipHome, tipAway, realHome, realAway, joker) {
   return pts;
 }
 
-// ── Tab switching ──
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
@@ -439,7 +454,6 @@ async function loadTab(tab) {
   else if (tab === 'admin') renderAdmin();
 }
 
-// ── Load tipps from DB ──
 async function loadTipps(spieltag) {
   if (allTipps[spieltag]) return;
   if (!db) { allTipps[spieltag] = {}; return; }
@@ -458,22 +472,16 @@ async function renderUebersicht() {
   el.innerHTML = '<div class="loading">Lade Spieltag ' + currentSpieltag + '</div>';
   const matches = await fetchMatches(currentSpieltag);
   await loadTipps(currentSpieltag);
-  // compute total pts for ranking
   const playerPts = await computeRankingPts(1, currentSpieltag);
   const ranked = rankPlayers(playerPts);
   const namedPlayers = assignFunNames(ranked);
-
   if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
 
   let html = '<div class="overview-wrap"><table class="overview-table">';
-  // Header: team names
   html += '<tr class="match-header"><th></th><th></th>';
-  matches.forEach(m => {
-    html += `<th class="match-col-header">${m.team1.shortName}<br>${m.team2.shortName}</th>`;
-  });
+  matches.forEach(m => { html += `<th class="match-col-header">${esc(m.team1.shortName)}<br>${esc(m.team2.shortName)}</th>`; });
   html += '<th class="col-label">Spieltag</th><th class="col-label">Gesamt</th></tr>';
 
-  // Score row
   html += '<tr class="match-header"><td></td><td></td>';
   matches.forEach(m => {
     const sc = getMatchScore(m, currentSpieltag);
@@ -481,13 +489,12 @@ async function renderUebersicht() {
   });
   html += '<td></td><td></td></tr>';
 
-  // Tipper rows
   namedPlayers.forEach((p, idx) => {
     const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
     let stPts = 0;
     html += `<tr class="tipper-row">
       <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
-      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>`;
+      <td class="name-cell"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
     matches.forEach(m => {
       const tip = (allTipps[currentSpieltag][m.matchID] || {})[p.id];
       const sc = getMatchScore(m, currentSpieltag);
@@ -512,12 +519,11 @@ async function renderUebersicht() {
     const totalPts = playerPts[p.id] || 0;
     html += `<td class="sum-cell">${stPts}</td><td class="total-cell">${totalPts}</td></tr>`;
   });
-
   html += '</table></div>';
   el.innerHTML = html;
 }
 
-// ── RANKING (Gesamt / Halbserien) ──
+// ── RANKING ──
 async function computeRankingPts(fromST, toST) {
   const pts = {};
   allPlayers.forEach(p => { pts[p.id] = 0; });
@@ -549,14 +555,13 @@ async function renderRanking(tabId, fromST, toST) {
   const pts = await computeRankingPts(fromST, toST);
   const ranked = rankPlayers(pts);
   const named = assignFunNames(ranked);
-
   let html = '<div class="overview-wrap"><table class="overview-table" style="min-width:400px">';
   html += '<tr class="match-header"><th style="width:36px"></th><th style="padding:8px 12px">Spieler</th><th style="text-align:right;padding:8px 12px">Punkte</th></tr>';
   named.forEach((p, i) => {
     const rc = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     html += `<tr class="tipper-row">
       <td class="rank-cell"><span class="${rc}">${i+1}</span></td>
-      <td class="name-cell"><div class="realname">${p.name}</div><div class="funname">${p.funname||''}</div></td>
+      <td class="name-cell"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>
       <td class="total-cell" style="padding-right:20px">${p.pts}</td>
     </tr>`;
   });
@@ -572,18 +577,9 @@ async function renderTippen() {
   const matches = await fetchMatches(currentSpieltag);
   await loadTipps(currentSpieltag);
 
-  let jokerUsed = false;
-  allPlayers.forEach(p => {
-    if (p.id !== currentUser.id) return;
-    matches.forEach(m => {
-      const t = (allTipps[currentSpieltag][m.matchID]||{})[p.id];
-      if (t && t.joker) jokerUsed = true;
-    });
-  });
-
   let html = `<div class="tippen-wrap">
     <h2>Spieltag ${currentSpieltag} – Deine Tipps</h2>
-    <div class="info-box">Du tippst als <strong>${currentUser.name}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
+    <div class="info-box">Du tippst als <strong>${esc(currentUser.name)}</strong>. Nur deine eigenen Tipps können geändert werden, solange das Spiel noch nicht läuft.</div>`;
 
   matches.forEach(m => {
     const myTip = (allTipps[currentSpieltag][m.matchID]||{})[currentUser.id] || {};
@@ -592,9 +588,8 @@ async function renderTippen() {
     const jChecked = myTip.joker ? 'checked' : '';
     const disabled = started ? 'disabled' : '';
     const startedNote = started ? '<span style="color:var(--danger);font-size:11px;margin-left:8px">Spiel läuft/beendet</span>' : '';
-
     html += `<div class="match-card" id="card-${m.matchID}">
-      <div class="teams">${m.team1.teamName} <span style="color:var(--muted)">vs</span> ${m.team2.teamName}${startedNote}</div>
+      <div class="teams">${esc(m.team1.teamName)} <span style="color:var(--muted)">vs</span> ${esc(m.team2.teamName)}${startedNote}</div>
       <div class="kickoff">${kickoff.toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
       <div class="tip-inputs">
         <input type="number" min="0" max="20" id="th-${m.matchID}" value="${myTip.home??''}" ${disabled} placeholder="–" style="width:52px">
@@ -616,7 +611,6 @@ async function renderTippen() {
 
 function onJokerChange(cb, matchID) {
   if (!cb.checked) { cb.closest('.joker-toggle').classList.remove('active'); return; }
-  // Uncheck all others
   document.querySelectorAll('[id^="tj-"]').forEach(x => { if (x !== cb) { x.checked = false; x.closest('.joker-toggle').classList.remove('active'); } });
   cb.closest('.joker-toggle').classList.add('active');
 }
@@ -632,14 +626,24 @@ async function saveTipps(matchIDs) {
     const j = document.getElementById('tj-'+mid);
     if (!h || h.disabled) continue;
     if (h.value === '' || a.value === '') continue;
+    // ── INPUT VALIDIERUNG ──
+    let h_val, a_val;
+    try {
+      h_val = Validator.score(h.value);
+      a_val = Validator.score(a.value);
+    } catch(e) {
+      msg.className = 'msg msg-err';
+      msg.textContent = e.message;
+      return;
+    }
     if (j && j.checked) jokerCount++;
-    rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: parseInt(h.value), tip_away: parseInt(a.value), joker: j ? j.checked : false });
+    rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: h_val, tip_away: a_val, joker: j ? j.checked : false });
   }
   if (jokerCount > 1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
   if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
   const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
-  if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+error.message; return; }
-  allTipps[currentSpieltag] = null; // invalidate cache
+  if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(error.message); return; }
+  allTipps[currentSpieltag] = null;
   await loadTipps(currentSpieltag);
   msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
 }
@@ -650,32 +654,30 @@ async function renderMauMau() {
   if (!db) { el.innerHTML = '<div class="loading">Supabase nicht konfiguriert.</div>'; return; }
   const { data } = await db.from('maumau').select('*').order('created_at', { ascending: false });
   maumauData = data || [];
-
   let html = '<div class="maumau-wrap">';
   if (isAdmin) {
     html += `<div class="admin-section" style="margin-bottom:16px">
       <div class="form-row">
         <label>Spieler</label>
-        <select id="mm-player">${allPlayers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+        <select id="mm-player">${allPlayers.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select>
         <label>Betrag (€)</label>
-        <input type="number" id="mm-amount" placeholder="z.B. 5" style="width:80px">
+        <input type="number" id="mm-amount" placeholder="z.B. 5" style="width:80px" min="0" max="9999">
         <label>Beschreibung</label>
-        <input type="text" id="mm-desc" placeholder="Grund" style="width:160px">
+        <input type="text" id="mm-desc" placeholder="Grund" style="width:160px" maxlength="200">
         <label>Typ</label>
         <select id="mm-type"><option value="zahlt">zahlt</option><option value="kassiert">kassiert</option></select>
         <button class="btn-primary" onclick="addMauMau()">+ Eintrag</button>
       </div>
     </div>`;
   }
-
   html += '<table class="maumau-table"><thead><tr><th>Spieler</th><th>Betrag</th><th>Typ</th><th>Beschreibung</th></tr></thead><tbody>';
   maumauData.forEach(row => {
     const player = allPlayers.find(p => p.id === row.player_id);
     html += `<tr>
-      <td>${player ? player.name : row.player_id}</td>
-      <td style="font-family:'Barlow Condensed';font-weight:700">${row.amount} €</td>
-      <td><span class="badge badge-${row.type}">${row.type}</span></td>
-      <td style="color:var(--muted)">${row.description||''}</td>
+      <td>${player ? esc(player.name) : esc(row.player_id)}</td>
+      <td style="font-family:'Barlow Condensed';font-weight:700">${parseFloat(row.amount).toFixed(2)} €</td>
+      <td><span class="badge badge-${esc(row.type)}">${esc(row.type)}</span></td>
+      <td style="color:var(--muted)">${esc(row.description||'')}</td>
     </tr>`;
   });
   html += '</tbody></table></div>';
@@ -685,9 +687,10 @@ async function renderMauMau() {
 async function addMauMau() {
   const pid = document.getElementById('mm-player').value;
   const amount = parseFloat(document.getElementById('mm-amount').value);
-  const desc = document.getElementById('mm-desc').value;
+  const desc = document.getElementById('mm-desc').value.slice(0, 200);
   const type = document.getElementById('mm-type').value;
-  if (!pid || isNaN(amount)) return;
+  if (!pid || isNaN(amount) || amount < 0 || amount > 9999) return;
+  if (!['zahlt','kassiert'].includes(type)) return;
   await db.from('maumau').insert({ player_id: pid, amount, description: desc, type });
   tabLoaded['maumau'] = false;
   loadTab('maumau');
@@ -700,13 +703,12 @@ function renderAdmin() {
     <div class="admin-section">
       <h3>👥 Spieler verwalten</h3>
       <div class="form-row">
-        <label>Name</label><input type="text" id="new-player-name" placeholder="Vor- Nachname">
-        <label>PIN</label><input type="text" id="new-player-pin" placeholder="1234" maxlength="6" style="width:80px">
+        <label>Name</label><input type="text" id="new-player-name" placeholder="Vor- Nachname" maxlength="50">
+        <label>PIN</label><input type="text" id="new-player-pin" placeholder="1234" maxlength="6" style="width:80px" inputmode="numeric">
         <button class="btn-primary" onclick="addPlayer()">+ Spieler hinzufügen</button>
       </div>
       <div id="player-list" class="player-list">${renderPlayerList()}</div>
     </div>
-
     <div class="admin-section">
       <h3>📊 Ergebnisse eintragen (Spieltag ${currentSpieltag})</h3>
       <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Nur nötig wenn OpenLigaDB Fehler hat. Sonst automatisch.</p>
@@ -714,7 +716,6 @@ function renderAdmin() {
       <button class="btn-primary" style="margin-top:12px" onclick="saveAdminScores()">💾 Ergebnisse speichern</button>
       <div id="scores-msg"></div>
     </div>
-
     <div class="admin-section">
       <h3>⚙ Einstellungen</h3>
       <div class="form-row">
@@ -729,16 +730,18 @@ function renderAdmin() {
 
 function renderPlayerList() {
   return allPlayers.map(p => `<div class="player-item">
-    <span class="pname">${p.name}</span>
-    <span class="ppin">PIN: ${p.pin}</span>
-    <button class="btn-danger" onclick="deletePlayer('${p.id}')">✕</button>
+    <span class="pname">${esc(p.name)}</span>
+    <span class="ppin">PIN: ${esc(p.pin)}</span>
+    <button class="btn-danger" onclick="deletePlayer('${esc(p.id)}')">✕</button>
   </div>`).join('');
 }
 
 async function addPlayer() {
-  const name = document.getElementById('new-player-name').value.trim();
-  const pin = document.getElementById('new-player-pin').value.trim();
-  if (!name || pin.length < 4) { alert('Name und mind. 4-stellige PIN eingeben.'); return; }
+  const nameRaw = document.getElementById('new-player-name').value;
+  const pin  = document.getElementById('new-player-pin').value.trim();
+  let name;
+  try { name = Validator.name(nameRaw); } catch(e) { alert('Ungültiger Name: ' + e.message); return; }
+  if (pin.length < 4 || !/^\d+$/.test(pin)) { alert('PIN muss aus 4–6 Ziffern bestehen.'); return; }
   if (!db) { alert('Supabase nicht konfiguriert.'); return; }
   await db.from('players').insert({ name, pin });
   await loadPlayers();
@@ -762,7 +765,7 @@ async function loadAdminScores() {
     const sc = allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID];
     const apiSc = getMatchScore(m, currentSpieltag);
     return `<div class="score-item">
-      <span class="match-label">${m.team1.shortName} vs ${m.team2.shortName}</span>
+      <span class="match-label">${esc(m.team1.shortName)} vs ${esc(m.team2.shortName)}</span>
       <input type="number" id="ah-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.home:'-'}" value="${sc?sc.home:''}">
       <span style="color:var(--muted)">:</span>
       <input type="number" id="aa-${m.matchID}" min="0" max="20" placeholder="${apiSc?apiSc.away:'-'}" value="${sc?sc.away:''}">
@@ -778,8 +781,10 @@ async function saveAdminScores() {
     const h = document.getElementById('ah-'+m.matchID);
     const a = document.getElementById('aa-'+m.matchID);
     if (h && h.value !== '' && a && a.value !== '') {
-      allScores[currentSpieltag][m.matchID] = { home: parseInt(h.value), away: parseInt(a.value) };
-      rows.push({ spieltag: currentSpieltag, match_id: m.matchID, score_home: parseInt(h.value), score_away: parseInt(a.value) });
+      let hv, av;
+      try { hv = Validator.score(h.value); av = Validator.score(a.value); } catch(e) { return; }
+      allScores[currentSpieltag][m.matchID] = { home: hv, away: av };
+      rows.push({ spieltag: currentSpieltag, match_id: m.matchID, score_home: hv, score_away: av });
     }
   });
   if (db && rows.length) await db.from('admin_scores').upsert(rows, { onConflict: 'spieltag,match_id' });
@@ -793,70 +798,5 @@ function setCurrentSpieltag() {
   switchTab('uebersicht');
 }
 </script>
-
-<!--
-════════════════════════════════════════════════════════════════════════
-  SUPABASE SETUP – Führe diese SQL-Befehle in deinem Supabase-Projekt aus
-  (SQL Editor → New query → Paste → Run)
-════════════════════════════════════════════════════════════════════════
-
--- Spieler-Tabelle
-CREATE TABLE players (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  pin TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tipps-Tabelle
-CREATE TABLE tipps (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  player_id UUID REFERENCES players(id) ON DELETE CASCADE,
-  spieltag INT NOT NULL,
-  match_id BIGINT NOT NULL,
-  tip_home INT NOT NULL,
-  tip_away INT NOT NULL,
-  joker BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(player_id, spieltag, match_id)
-);
-
--- Admin-Ergebnisse (Override für OpenLigaDB)
-CREATE TABLE admin_scores (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  spieltag INT NOT NULL,
-  match_id BIGINT NOT NULL,
-  score_home INT NOT NULL,
-  score_away INT NOT NULL,
-  UNIQUE(spieltag, match_id)
-);
-
--- MauMau Kopeken-Tabelle
-CREATE TABLE maumau (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  player_id UUID REFERENCES players(id) ON DELETE CASCADE,
-  amount DECIMAL(8,2) NOT NULL,
-  type TEXT NOT NULL,  -- 'zahlt' or 'kassiert'
-  description TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Row Level Security (RLS) – alle lesen, nur authentifiziert schreiben
-ALTER TABLE players ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tipps ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_scores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE maumau ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "public read players" ON players FOR SELECT USING (true);
-CREATE POLICY "public read tipps" ON tipps FOR SELECT USING (true);
-CREATE POLICY "public write tipps" ON tipps FOR ALL USING (true);
-CREATE POLICY "public read scores" ON admin_scores FOR SELECT USING (true);
-CREATE POLICY "public write scores" ON admin_scores FOR ALL USING (true);
-CREATE POLICY "public read maumau" ON maumau FOR SELECT USING (true);
-CREATE POLICY "public write maumau" ON maumau FOR ALL USING (true);
-CREATE POLICY "public write players" ON players FOR ALL USING (true);
-
-════════════════════════════════════════════════════════════════════════
--->
 </body>
 </html>
