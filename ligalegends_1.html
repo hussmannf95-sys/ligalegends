@@ -95,6 +95,11 @@
   .maumau-table th { background: var(--surface2); padding: 10px 12px; text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: .5px; color: var(--muted); border-bottom: 2px solid var(--border); }
   .maumau-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
   .maumau-table tr:hover td { background: rgba(255,255,255,.02); }
+  .einsatz-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.einsatz-badge { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; font-size:13px; border:1px solid var(--border); }
+.einsatz-badge.paid { background:rgba(0,196,160,.1); border-color:rgba(0,196,160,.3); color:var(--accent); }
+.einsatz-badge.open { background:var(--surface2); color:var(--muted); }
+.einsatz-icon { font-weight:700; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
   .badge-zahlt { background: rgba(232,65,65,.15); color: var(--wrong); }
   .badge-kassiert { background: rgba(0,196,160,.12); color: var(--correct); }
@@ -685,9 +690,20 @@ async function renderMauMau() {
   if (!db) { el.innerHTML = '<div class="loading">Supabase nicht konfiguriert.</div>'; return; }
   const { data } = await db.from('maumau').select('*').order('created_at', { ascending: false });
   maumauData = data || [];
+  const bezahltCount = allPlayers.filter(p => p.einsatz_bezahlt).length;
   let html = '<div class="maumau-wrap">';
+
+  html += `<h3 style="margin:0 0 4px">Einsatz-Status</h3>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:10px">${bezahltCount} von ${allPlayers.length} erledigt</div>
+    <div class="einsatz-grid">
+      ${allPlayers.map(p => `
+        <div class="einsatz-badge ${p.einsatz_bezahlt ? 'paid' : 'open'}"${isAdmin ? ` onclick="toggleEinsatz('${esc(p.id)}', ${!!p.einsatz_bezahlt})" style="cursor:pointer"` : ''}>
+          <span class="einsatz-icon">${p.einsatz_bezahlt ? '✓' : '·'}</span><span>${esc(p.name)}</span>
+        </div>`).join('')}
+    </div>`;
+
   if (isAdmin) {
-    html += `<div class="admin-section" style="margin-bottom:16px">
+    html += `<div class="admin-section" style="margin:20px 0 16px">
       <div class="form-row">
         <label>Spieler</label>
         <select id="mm-player">${allPlayers.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select>
@@ -714,6 +730,15 @@ async function renderMauMau() {
   html += '</tbody></table></div>';
   el.innerHTML = html;
 }
+
+async function toggleEinsatz(pid, current) {
+  await db.from('players').update({ einsatz_bezahlt: !current }).eq('id', pid);
+  await loadPlayers();
+  tabLoaded['maumau'] = false;
+  loadTab('maumau');
+}
+
+async function addMauMau() {
 
 async function addMauMau() {
   const pid = document.getElementById('mm-player').value;
