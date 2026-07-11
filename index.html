@@ -378,7 +378,7 @@ const Validator = {
   name(v) {
     if (typeof v !== 'string') throw new Error('Kein String');
     const clean = v.trim().slice(0, 50);
-    if (!/^[a-zA-ZäöüÄÖÜß0-9 _\-]+$/.test(clean)) throw new Error('Ungültige Zeichen im Namen');
+    if (!/^[a-zA-ZäöüÄÖÜß0-9 _.\-]+$/.test(clean)) throw new Error('Ungültige Zeichen im Namen');
     return clean;
   }
 };
