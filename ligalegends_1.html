@@ -142,7 +142,9 @@
 <script>
 const SUPABASE_URL = 'https://wwwhaoaeqlgltpwoutyt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
-/* ADMIN_PASSWORD wurde entfernt – Prüfung erfolgt serverseitig via Supabase RPC */
+/* ADMIN_PASSWORD wurde entfernt – Login läuft über echte Supabase-Auth-Accounts */
+const AUTH_PW_PREFIX = 'tp92-'; // muss exakt zu PW_PREFIX in den Edge Functions passen
+const ADMIN_EMAIL = 'admin@tipper92.local';
 const LIGA = 'bl1';
 const SAISON = '2026';
 const PTS_CORRECT = 3;
@@ -272,6 +274,7 @@ let currentTab = 'uebersicht';
 let currentSpieltag = 1;
 let maxSpieltag = 17;
 let allPlayers = [];
+let adminPlayerList = []; // nur für den Admin-Bereich, enthält PINs
 let allTipps = {};
 let allMatches = {};
 let allScores = {};
@@ -320,11 +323,22 @@ async function doLogin() {
 
   if (!db) { bootDemoMode(name); return; }
 
-  const { data, error } = await db.from('players').select('*').ilike('name', name).eq('pin', pin).single();
-  if (error || !data) { errEl.textContent = 'Name oder PIN falsch.'; return; }
+  // 1) Name -> zugehörige (interne) Login-E-Mail auflösen. Verrät nichts über den PIN.
+  const { data: loginEmail, error: emailErr } = await db.rpc('get_login_email', { p_name: name });
+  if (emailErr || !loginEmail) { errEl.textContent = 'Name oder PIN falsch.'; return; }
+
+  // 2) Echte Supabase-Auth-Anmeldung (PIN wird hier zum Passwort)
+  const { data: authData, error: authErr } = await db.auth.signInWithPassword({
+    email: loginEmail, password: AUTH_PW_PREFIX + pin
+  });
+  if (authErr || !authData?.user) { errEl.textContent = 'Name oder PIN falsch.'; return; }
+
+  // 3) Spieler-Profil zur eingeloggten Auth-Identität laden
+  const { data: playerRow, error: playerErr } = await db.from('players').select('*').eq('auth_id', authData.user.id).single();
+  if (playerErr || !playerRow) { errEl.textContent = 'Profil konnte nicht geladen werden.'; return; }
 
   LoginGuard.reset();
-  currentUser = data;
+  currentUser = playerRow;
   isAdmin = false;
   bootApp();
 }
@@ -338,9 +352,11 @@ async function doAdminLogin() {
 
   if (!db) { errEl.textContent = 'Supabase nicht verbunden.'; return; }
 
-  // Passwort wird NICHT im Client verglichen – Supabase RPC prüft serverseitig
-  const { data, error } = await db.rpc('check_admin_password', { input_pw: pw });
-  if (error || !data) { errEl.textContent = 'Falsches Passwort.'; return; }
+  // Echte Supabase-Auth-Anmeldung für den Admin-Account
+  const { data: authData, error: authErr } = await db.auth.signInWithPassword({
+    email: ADMIN_EMAIL, password: pw
+  });
+  if (authErr || !authData?.user) { errEl.textContent = 'Falsches Passwort.'; return; }
 
   LoginGuard.reset();
   isAdmin = true;
@@ -354,7 +370,8 @@ function bootDemoMode(name) {
   bootApp();
 }
 
-function logout() {
+async function logout() {
+  if (db) { try { await db.auth.signOut(); } catch(e) {} }
   currentUser = null; isAdmin = false;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-overlay').style.display = 'flex';
@@ -370,14 +387,23 @@ async function bootApp() {
   document.getElementById('header-user').textContent = esc(currentUser.name) + (isAdmin ? ' (Admin)' : '');
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
+  if (isAdmin) await loadAdminPlayers();
   await detectCurrentSpieltag();
   switchTab('uebersicht');
 }
 
+// ── Load players (öffentliche Ansicht ohne PIN, für Ranglisten/Dropdowns) ──
 async function loadPlayers() {
   if (!db) { allPlayers = [{id:'demo',name:'Demo',pin:'0000',total_pts:0}]; return; }
-  const { data } = await db.from('players').select('*').order('name');
+  const { data } = await db.from('players_public').select('*').order('name');
   allPlayers = data || [];
+}
+
+// ── Load players inkl. PIN, NUR für den Admin-Bereich (RLS erlaubt das nur Admins) ──
+async function loadAdminPlayers() {
+  if (!db) { adminPlayerList = []; return; }
+  const { data } = await db.from('players').select('*').order('name');
+  adminPlayerList = data || [];
 }
 
 async function fetchMatches(spieltag) {
@@ -765,7 +791,7 @@ async function downloadBackup() {
 }
 
 function renderPlayerList() {
-  return allPlayers.map(p => `<div class="player-item">
+  return adminPlayerList.map(p => `<div class="player-item">
     <span class="pname">${esc(p.name)}</span>
     <span class="ppin">PIN: ${esc(p.pin)}</span>
     <button class="btn-danger" onclick="deletePlayer('${esc(p.id)}')">✕</button>
@@ -779,8 +805,10 @@ async function addPlayer() {
   try { name = Validator.name(nameRaw); } catch(e) { alert('Ungültiger Name: ' + e.message); return; }
   if (pin.length < 4 || !/^\d+$/.test(pin)) { alert('PIN muss aus 4–6 Ziffern bestehen.'); return; }
   if (!db) { alert('Supabase nicht konfiguriert.'); return; }
-  await db.from('players').insert({ name, pin });
+  const { data, error } = await db.functions.invoke('admin-add-player', { body: { name, pin } });
+  if (error || data?.error) { alert('Fehler beim Anlegen: ' + (data?.error || error.message)); return; }
   await loadPlayers();
+  await loadAdminPlayers();
   document.getElementById('player-list').innerHTML = renderPlayerList();
   document.getElementById('new-player-name').value = '';
   document.getElementById('new-player-pin').value = '';
@@ -788,8 +816,10 @@ async function addPlayer() {
 
 async function deletePlayer(id) {
   if (!confirm('Spieler wirklich löschen?')) return;
-  await db.from('players').delete().eq('id', id);
+  const { data, error } = await db.functions.invoke('admin-delete-player', { body: { player_id: id } });
+  if (error || data?.error) { alert('Fehler beim Löschen: ' + (data?.error || error.message)); return; }
   await loadPlayers();
+  await loadAdminPlayers();
   document.getElementById('player-list').innerHTML = renderPlayerList();
 }
 
