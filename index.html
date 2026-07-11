@@ -393,7 +393,7 @@ let currentUser   = null;
 let isAdmin       = false;
 let currentTab    = 'uebersicht';
 let currentSpieltag = 1;
-let maxSpieltag   = 34;
+let maxSpieltag   = RUECKSERIE_TO;
 let allPlayers    = [];
 let allTipps      = {};
 let allMatches    = {};
@@ -1699,7 +1699,7 @@ function renderAdmin() {
       <h3>⚙ Einstellungen</h3>
       <div class="form-row">
         <label>Aktueller Spieltag</label>
-        <input type="number" id="admin-spieltag" value="${currentSpieltag}" min="1" max="34" style="width:70px">
+        <input type="number" id="admin-spieltag" value="${currentSpieltag}" min="1" max="${maxSpieltag}" style="width:70px">
         <button class="btn-primary" onclick="setCurrentSpieltag()">Setzen</button>
       </div>
     </div>
