@@ -1095,7 +1095,7 @@ async function renderUebersicht() {
           const kickoff = new Date(m.matchDateTimeUTC);
           const started = kickoff < new Date();
           const isOwn   = p.id === currentUser.id;
-          const visible = isOwn || started || isAdmin || sc !== null;
+          const visible = isOwn || started || sc !== null;
           if (!tip || !visible) { html += '<td class="tip-cell"><span class="tip-none">–</span></td>'; return; }
           const pts = sc !== null ? calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker) : null;
           if (pts !== null) stPts += pts;
