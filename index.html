@@ -319,10 +319,11 @@ const FUN_NAMES_MIDDLE = [
     <div class="tab active" data-tab="uebersicht" onclick="switchTab('uebersicht')">Übersicht</div>
     <div class="tab" data-tab="saison" onclick="switchTab('saison')">2026/27 Hinserie</div>
     <div class="tab" data-tab="tippen" onclick="switchTab('tippen')">Tippen</div>
-    <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik</div>
+    <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik aktuell</div>
     <div class="tab" data-tab="kabinentalk" onclick="switchTab('kabinentalk')">💬 Kabinentalk <span id="kab-badge" style="display:none;background:#3B82F6;color:#fff;border-radius:99px;font-size:10px;padding:1px 6px;margin-left:4px;font-family:'Barlow',sans-serif;font-weight:700"></span></div>
     <div class="tab" data-tab="regeln" onclick="switchTab('regeln')">📋 Regeln</div>
     <div class="tab" data-tab="hof" onclick="switchTab('hof')">🏆 Hall of Fame</div>
+    <div class="tab" data-tab="historie" onclick="switchTab('historie')">📜 Historie</div>
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
@@ -339,6 +340,7 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-kabinentalk" style="display:none"><div class="loading">Lade Kabinentalk</div></div>
   <div id="tab-regeln" style="display:none"></div>
   <div id="tab-hof" style="display:none"></div>
+  <div id="tab-historie" style="display:none"></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
 </div>
@@ -689,6 +691,7 @@ async function loadTab(tab) {
   else if (tab === 'kabinentalk') await renderKabinentalk();
   else if (tab === 'regeln')      renderRegeln();
   else if (tab === 'hof')         renderHOF();
+  else if (tab === 'historie')    renderHistorie();
   else if (tab === 'admin')       renderAdmin();
 }
 
@@ -1610,6 +1613,157 @@ async function kabComment(postId) {
 }
 
 // ── REGELN ──
+
+function renderHistorie() {
+  const el = document.getElementById('tab-historie');
+  const stats = [
+    {name:'Christian Daniel',n:21,since:'2014/15',avgPts:114.6,bestPlatz:6,avgPlatz:18.4},
+    {name:'Dieter Hussmann',n:21,since:'2014/15',avgPts:128.1,bestPlatz:1,avgPlatz:9.2},
+    {name:'Klaus Derksen',n:21,since:'2014/15',avgPts:116.7,bestPlatz:6,avgPlatz:16.0},
+    {name:'Manfred Krieger',n:21,since:'2014/15',avgPts:124.7,bestPlatz:2,avgPlatz:11.3},
+    {name:'Michael Mommertz',n:21,since:'2014/15',avgPts:114.0,bestPlatz:4,avgPlatz:18.6},
+    {name:'Robert Dörnenburg',n:21,since:'2014/15',avgPts:125.3,bestPlatz:1,avgPlatz:11.3},
+    {name:'Sebastian Runge',n:21,since:'2014/15',avgPts:132.0,bestPlatz:1,avgPlatz:6.9},
+    {name:'Stefan Daniel',n:21,since:'2014/15',avgPts:127.1,bestPlatz:2,avgPlatz:9.2},
+    {name:'Thomas Schmitt',n:21,since:'2014/15',avgPts:126.1,bestPlatz:1,avgPlatz:10.6},
+    {name:'Marco Müller',n:20,since:'2015/16',avgPts:121.8,bestPlatz:4,avgPlatz:14.1},
+    {name:'Marion Daniel',n:19,since:'2014/15',avgPts:122.1,bestPlatz:1,avgPlatz:13.8},
+    {name:'Norbert Gahlen',n:19,since:'2014/15',avgPts:116.8,bestPlatz:6,avgPlatz:17.4},
+    {name:'Norbert Hormanns',n:18,since:'2016/17',avgPts:120.4,bestPlatz:3,avgPlatz:15.8},
+    {name:'Marion Gudowski',n:15,since:'2015/16',avgPts:123.3,bestPlatz:1,avgPlatz:12.3},
+    {name:'Claudia Arts-Criee',n:14,since:'2018/19',avgPts:124.3,bestPlatz:1,avgPlatz:13.5},
+    {name:'Ute Dietrich',n:14,since:'2019/20',avgPts:125.6,bestPlatz:1,avgPlatz:14.4},
+    {name:'Björn Unfug',n:13,since:'2014/15',avgPts:121.7,bestPlatz:2,avgPlatz:11.6},
+    {name:'Pierre Schmitt',n:13,since:'2016/17',avgPts:123.7,bestPlatz:3,avgPlatz:11.5},
+    {name:'Frank Laskowski',n:12,since:'2020/21',avgPts:126.2,bestPlatz:6,avgPlatz:14.2},
+    {name:'Ralf Ries',n:12,since:'2020/21',avgPts:141.9,bestPlatz:1,avgPlatz:5.6},
+    {name:'Bernd Weißkopf',n:11,since:'2020/21',avgPts:121.8,bestPlatz:5,avgPlatz:18.7},
+    {name:'Klaus Höttges',n:11,since:'2020/21',avgPts:135.0,bestPlatz:3,avgPlatz:10.8},
+    {name:'Gerhard Kloos',n:10,since:'2014/15',avgPts:114.5,bestPlatz:2,avgPlatz:11.4},
+    {name:'Jürgen Zahren',n:9,since:'2014/15',avgPts:115.4,bestPlatz:1,avgPlatz:10.1},
+    {name:'Dennis Schmitt',n:8,since:'2022/23',avgPts:128.6,bestPlatz:3,avgPlatz:14.5},
+    {name:'Hans Bruns',n:8,since:'2021/22',avgPts:127.2,bestPlatz:3,avgPlatz:16.5},
+    {name:'Harald Bothmann',n:8,since:'2014/15',avgPts:106.4,bestPlatz:2,avgPlatz:15.0},
+    {name:'Michael Stöckigt',n:8,since:'2016/17',avgPts:119.6,bestPlatz:1,avgPlatz:10.5},
+    {name:'Thomas Becker',n:8,since:'2014/15',avgPts:113.2,bestPlatz:2,avgPlatz:10.9},
+    {name:'Werner Haslach',n:8,since:'2022/23',avgPts:126.4,bestPlatz:8,avgPlatz:17.4},
+    {name:'Sabine Stöckigt',n:7,since:'2016/17',avgPts:109.6,bestPlatz:3,avgPlatz:15.1},
+    {name:'Armin Bradka',n:6,since:'2014/15',avgPts:110.2,bestPlatz:6,avgPlatz:14.2},
+    {name:'Frank Poschmann',n:6,since:'2023/24',avgPts:139.7,bestPlatz:1,avgPlatz:11.3},
+    {name:'Georg Sampers',n:6,since:'2023/24',avgPts:135.5,bestPlatz:1,avgPlatz:11.7},
+    {name:'Jürgen Plichta',n:6,since:'2022/23',avgPts:126.7,bestPlatz:2,avgPlatz:16.3},
+    {name:'Marius Runge',n:6,since:'2023/24',avgPts:132.5,bestPlatz:5,avgPlatz:14.2},
+    {name:'Ralph Nys',n:6,since:'2023/24',avgPts:132.3,bestPlatz:4,avgPlatz:13.0},
+    {name:'Uwe Wenk',n:6,since:'2014/15',avgPts:110.0,bestPlatz:9,avgPlatz:14.8},
+    {name:'Bert & Petra Derks',n:5,since:'2014/15',avgPts:103.2,bestPlatz:2,avgPlatz:17.0},
+    {name:'Fabian Dörnenburg',n:5,since:'2014/15',avgPts:103.2,bestPlatz:16,avgPlatz:19.2},
+    {name:'Oliver Schwarten',n:5,since:'2014/15',avgPts:100.0,bestPlatz:18,avgPlatz:22.4},
+    {name:'Bernd Häcki',n:4,since:'2015/16',avgPts:112.5,bestPlatz:3,avgPlatz:12.2},
+    {name:'Ilias Dimitriadis',n:4,since:'2019/20',avgPts:128.8,bestPlatz:3,avgPlatz:12.8},
+    {name:'Jonas Daube',n:4,since:'2015/16',avgPts:117.2,bestPlatz:2,avgPlatz:9.0},
+    {name:'Markus Schönauer',n:4,since:'2024/25',avgPts:134.2,bestPlatz:7,avgPlatz:10.8},
+    {name:'Anna Bradka',n:3,since:'2014/15',avgPts:100.7,bestPlatz:16,avgPlatz:20.7},
+    {name:'Dietmar Afflerbach',n:3,since:'2014/15',avgPts:103.3,bestPlatz:7,avgPlatz:16.7},
+    {name:'Franz Dieter Fels',n:3,since:'2016/17',avgPts:106.7,bestPlatz:8,avgPlatz:19.7},
+    {name:'Jörg Luther',n:3,since:'2024/25',avgPts:122.7,bestPlatz:6,avgPlatz:18.7},
+    {name:'Norbert Friesl',n:3,since:'2014/15',avgPts:107.7,bestPlatz:10,avgPlatz:15.7},
+    {name:'Achim Kohl',n:2,since:'2020/21',avgPts:118.5,bestPlatz:17,avgPlatz:19.5},
+    {name:'Christoph Rangs',n:2,since:'2025/26',avgPts:118.5,bestPlatz:14,avgPlatz:21.5},
+    {name:'Tobias Dörnenburg',n:2,since:'2014/15',avgPts:101.5,bestPlatz:21,avgPlatz:22.5},
+    {name:'Angela Failenschmid',n:1,since:'2022/23',avgPts:74.0,bestPlatz:26,avgPlatz:26.0},
+    {name:'Dirk Giesler',n:1,since:'2023/24',avgPts:132.0,bestPlatz:22,avgPlatz:22.0},
+    {name:'Frank Voitz',n:1,since:'2015/16',avgPts:105.0,bestPlatz:20,avgPlatz:20.0},
+    {name:'Harry Böttcher',n:1,since:'2014/15',avgPts:88.0,bestPlatz:25,avgPlatz:25.0}
+  ];
+  const winRanking = [
+    {name:'Sebastian Runge',wins:4},
+    {name:'Ralf Ries',wins:3},
+    {name:'Marion Daniel',wins:2},
+    {name:'Robert Dörnenburg',wins:2},
+    {name:'Claudia Arts-Criee',wins:2},
+    {name:'Dieter Hussmann',wins:2},
+    {name:'Ute Dietrich',wins:2},
+    {name:'Frank Poschmann',wins:2},
+    {name:'Jürgen Zahren',wins:1},
+    {name:'Marion Gudowski',wins:1},
+    {name:'Michael Stöckigt',wins:1},
+    {name:'Thomas Schmitt',wins:1},
+    {name:'Georg Sampers',wins:1}
+  ];
+  const maxWin = {season:'2023/24',type:'Rückrunde',name:'Frank Poschmann',pts:178};
+  const minWin = {season:'2018/19',type:'Rückrunde',name:'Sebastian Runge',pts:119};
+
+  const maxWins = Math.max(...winRanking.map(w => w.wins));
+
+  let html = `<div class="regeln-wrap">
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">📜</span><span class="label">Historie</span></div>
+      <div class="regeln-section-body">
+        <p style="font-size:12px;color:var(--muted)">Alle Auswertungen basieren auf den 21 vollständig erfassten Halbserien seit 2014/15.</p>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">🏆</span><span class="label">Gesamtsiege-Ranking</span></div>
+      <div class="regeln-section-body">`;
+  winRanking.forEach((w,i) => {
+    const pct = Math.round(w.wins / maxWins * 100);
+    html += `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="font-weight:600;color:var(--text)">${i+1}. ${w.name}</span>
+        <span style="color:var(--muted)">${w.wins}</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:4px"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px"></div></div>
+    </div>`;
+  });
+  html += `</div></div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">📈</span><span class="label">Rekorde</span></div>
+      <div class="regeln-section-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Höchste Siegerpunktzahl<br><span style="font-size:11px">${maxWin.type} ${maxWin.season}</span></span>
+          <span style="text-align:right"><span style="font-weight:700;color:var(--accent2)">${maxWin.name}</span><br><span style="font-size:16px;font-weight:700;color:var(--accent2)">${maxWin.pts}</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:8px;padding:10px 12px">
+          <span style="font-size:13px;color:var(--muted)">Niedrigste Siegerpunktzahl<br><span style="font-size:11px">${minWin.type} ${minWin.season}</span></span>
+          <span style="text-align:right"><span style="font-weight:700;color:var(--text)">${minWin.name}</span><br><span style="font-size:16px;font-weight:700;color:var(--text)">${minWin.pts}</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">👥</span><span class="label">Teilnahmen &amp; Werte pro Tipper</span></div>
+      <div class="regeln-section-body" style="padding:0">
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Name</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Teiln.</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Seit</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">⌀ Punkte</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Beste Platz.</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">⌀ Platz.</th>
+          </tr></thead>
+          <tbody>`;
+  stats.forEach(s => {
+    html += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 10px;color:var(--text);font-weight:600">${s.name}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--muted)">${s.n}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--muted)">${s.since}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--text)">${s.avgPts.toFixed(1)}</td>
+      <td style="padding:7px 10px;text-align:right;color:${s.bestPlatz===1?'var(--accent2)':'var(--text)'}">${s.bestPlatz}</td>
+      <td style="padding:7px 10px;text-align:right;color:var(--text)">${s.avgPlatz.toFixed(1)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+      </div>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
 function renderHOF() {
   const el = document.getElementById('tab-hof');
   const seasons = [
