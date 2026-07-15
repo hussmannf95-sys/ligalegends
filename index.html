@@ -1614,6 +1614,28 @@ async function kabComment(postId) {
 
 // ── REGELN ──
 
+function sparkline(data, key, color) {
+  const w = 560, h = 110, pad = 8;
+  const vals = data.map(d => d[key]);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max - min) || 1;
+  const stepX = (w - pad*2) / (data.length - 1);
+  const pts = data.map((d,i) => {
+    const x = pad + i*stepX;
+    const y = pad + (h - pad*2) * (1 - (d[key]-min)/range);
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="${color}"></circle>`).join('');
+  const firstLbl = data[0].season, lastLbl = data[data.length-1].season;
+  return `<svg viewBox="0 0 ${w} ${h+18}" style="width:100%;height:auto">
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2"></path>
+    ${dots}
+    <text x="${pad}" y="${h+16}" font-size="10" fill="var(--muted)">${firstLbl}</text>
+    <text x="${w-pad}" y="${h+16}" font-size="10" fill="var(--muted)" text-anchor="end">${lastLbl}</text>
+  </svg>`;
+}
+
 function renderHistorie() {
   const el = document.getElementById('tab-historie');
   const stats = [
@@ -1692,8 +1714,216 @@ function renderHistorie() {
   ];
   const maxWin = {season:'2023/24',type:'Rückrunde',name:'Frank Poschmann',pts:178};
   const minWin = {season:'2018/19',type:'Rückrunde',name:'Sebastian Runge',pts:119};
+  const podium = [
+    {name:'Sebastian Runge',count:8},
+    {name:'Dieter Hussmann',count:5},
+    {name:'Thomas Schmitt',count:5},
+    {name:'Ralf Ries',count:5},
+    {name:'Robert Dörnenburg',count:3},
+    {name:'Gerhard Kloos',count:3},
+    {name:'Marion Gudowski',count:3},
+    {name:'Claudia Arts-Criee',count:3},
+    {name:'Ute Dietrich',count:3},
+    {name:'Björn Unfug',count:2},
+    {name:'Stefan Daniel',count:2},
+    {name:'Marion Daniel',count:2},
+    {name:'Thomas Becker',count:2},
+    {name:'Michael Stöckigt',count:2},
+    {name:'Pierre Schmitt',count:2},
+    {name:'Frank Poschmann',count:2},
+    {name:'Jürgen Zahren',count:1},
+    {name:'Bert & Petra Derks',count:1},
+    {name:'Manfred Krieger',count:1},
+    {name:'Harald Bothmann',count:1},
+    {name:'Jonas Daube',count:1},
+    {name:'Bernd Häcki',count:1},
+    {name:'Norbert Hormanns',count:1},
+    {name:'Sabine Stöckigt',count:1},
+    {name:'Ilias Dimitriadis',count:1},
+    {name:'Klaus Höttges',count:1},
+    {name:'Hans Bruns',count:1},
+    {name:'Dennis Schmitt',count:1},
+    {name:'Jürgen Plichta',count:1},
+    {name:'Georg Sampers',count:1}
+  ];
+  const ewigeTabelle = [
+    {name:'Sebastian Runge',pts:2773},
+    {name:'Dieter Hussmann',pts:2690},
+    {name:'Stefan Daniel',pts:2669},
+    {name:'Thomas Schmitt',pts:2648},
+    {name:'Robert Dörnenburg',pts:2631},
+    {name:'Manfred Krieger',pts:2619},
+    {name:'Klaus Derksen',pts:2451},
+    {name:'Marco Müller',pts:2435},
+    {name:'Christian Daniel',pts:2407},
+    {name:'Michael Mommertz',pts:2393},
+    {name:'Marion Daniel',pts:2319},
+    {name:'Norbert Gahlen',pts:2219},
+    {name:'Norbert Hormanns',pts:2167},
+    {name:'Marion Gudowski',pts:1849},
+    {name:'Ute Dietrich',pts:1759},
+    {name:'Claudia Arts-Criee',pts:1740},
+    {name:'Ralf Ries',pts:1703},
+    {name:'Pierre Schmitt',pts:1608},
+    {name:'Björn Unfug',pts:1582},
+    {name:'Frank Laskowski',pts:1514},
+    {name:'Klaus Höttges',pts:1485},
+    {name:'Bernd Weißkopf',pts:1340},
+    {name:'Gerhard Kloos',pts:1145},
+    {name:'Jürgen Zahren',pts:1039},
+    {name:'Dennis Schmitt',pts:1029},
+    {name:'Hans Bruns',pts:1018},
+    {name:'Werner Haslach',pts:1011},
+    {name:'Michael Stöckigt',pts:957},
+    {name:'Thomas Becker',pts:906},
+    {name:'Harald Bothmann',pts:851},
+    {name:'Frank Poschmann',pts:838},
+    {name:'Georg Sampers',pts:813},
+    {name:'Marius Runge',pts:795},
+    {name:'Ralph Nys',pts:794},
+    {name:'Sabine Stöckigt',pts:767},
+    {name:'Jürgen Plichta',pts:760},
+    {name:'Armin Bradka',pts:661},
+    {name:'Uwe Wenk',pts:660},
+    {name:'Markus Schönauer',pts:537},
+    {name:'Bert & Petra Derks',pts:516},
+    {name:'Fabian Dörnenburg',pts:516},
+    {name:'Ilias Dimitriadis',pts:515},
+    {name:'Oliver Schwarten',pts:500},
+    {name:'Jonas Daube',pts:469},
+    {name:'Bernd Häcki',pts:450},
+    {name:'Jörg Luther',pts:368},
+    {name:'Norbert Friesl',pts:323},
+    {name:'Franz Dieter Fels',pts:320},
+    {name:'Dietmar Afflerbach',pts:310},
+    {name:'Anna Bradka',pts:302},
+    {name:'Achim Kohl',pts:237},
+    {name:'Christoph Rangs',pts:237},
+    {name:'Tobias Dörnenburg',pts:203},
+    {name:'Dirk Giesler',pts:132},
+    {name:'Frank Voitz',pts:105},
+    {name:'Harry Böttcher',pts:88},
+    {name:'Angela Failenschmid',pts:74}
+  ];
+  const roteLaterne = [
+    {name:'Michael Mommertz',count:4},
+    {name:'Norbert Gahlen',count:2},
+    {name:'Klaus Derksen',count:2},
+    {name:'Frank Laskowski',count:2},
+    {name:'Armin Bradka',count:1},
+    {name:'Harald Bothmann',count:1},
+    {name:'Claudia Arts-Criee',count:1},
+    {name:'Bert & Petra Derks',count:1},
+    {name:'Christian Daniel',count:1},
+    {name:'Bernd Weißkopf',count:1},
+    {name:'Ute Dietrich',count:1},
+    {name:'Angela Failenschmid',count:1},
+    {name:'Frank Poschmann',count:1},
+    {name:'Franz Dieter Fels',count:1},
+    {name:'Ralph Nys',count:1},
+    {name:'Christoph Rangs',count:1}
+  ];
+  const konstanz = [
+    {name:'Ralf Ries',std:4.54,n:12},
+    {name:'Manfred Krieger',std:4.63,n:21},
+    {name:'Dieter Hussmann',std:4.91,n:21},
+    {name:'Bernd Weißkopf',std:5.99,n:11},
+    {name:'Stefan Daniel',std:6.04,n:21},
+    {name:'Norbert Gahlen',std:6.22,n:19},
+    {name:'Sebastian Runge',std:6.36,n:21},
+    {name:'Norbert Hormanns',std:6.51,n:18},
+    {name:'Marco Müller',std:6.7,n:20},
+    {name:'Marion Gudowski',std:6.79,n:15},
+    {name:'Christian Daniel',std:6.83,n:21},
+    {name:'Marion Daniel',std:6.9,n:19},
+    {name:'Thomas Schmitt',std:7.01,n:21},
+    {name:'Klaus Derksen',std:7.14,n:21},
+    {name:'Michael Mommertz',std:7.45,n:21},
+    {name:'Robert Dörnenburg',std:7.48,n:21},
+    {name:'Pierre Schmitt',std:7.54,n:13},
+    {name:'Gerhard Kloos',std:7.55,n:10},
+    {name:'Frank Laskowski',std:7.94,n:12},
+    {name:'Klaus Höttges',std:8.01,n:11},
+    {name:'Björn Unfug',std:8.12,n:13},
+    {name:'Claudia Arts-Criee',std:8.59,n:14},
+    {name:'Ute Dietrich',std:8.64,n:14}
+  ];
+  const spanne = [
+    {name:'Ralf Ries',range:30,max:158,min:128,n:12},
+    {name:'Frank Laskowski',range:37,max:146,min:109,n:12},
+    {name:'Gerhard Kloos',range:42,max:140,min:98,n:10},
+    {name:'Thomas Schmitt',range:43,max:148,min:105,n:21},
+    {name:'Norbert Hormanns',range:43,max:145,min:102,n:18},
+    {name:'Klaus Höttges',range:44,max:151,min:107,n:11},
+    {name:'Stefan Daniel',range:45,max:151,min:106,n:21},
+    {name:'Robert Dörnenburg',range:46,max:148,min:102,n:21},
+    {name:'Marion Daniel',range:47,max:144,min:97,n:19},
+    {name:'Dieter Hussmann',range:49,max:156,min:107,n:21},
+    {name:'Christian Daniel',range:49,max:141,min:92,n:21},
+    {name:'Marco Müller',range:51,max:149,min:98,n:20},
+    {name:'Björn Unfug',range:52,max:154,min:102,n:13},
+    {name:'Bernd Weißkopf',range:54,max:138,min:84,n:11},
+    {name:'Klaus Derksen',range:55,max:145,min:90,n:21},
+    {name:'Manfred Krieger',range:55,max:150,min:95,n:21},
+    {name:'Marion Gudowski',range:56,max:151,min:95,n:15},
+    {name:'Ute Dietrich',range:56,max:152,min:96,n:14},
+    {name:'Sebastian Runge',range:57,max:161,min:104,n:21},
+    {name:'Norbert Gahlen',range:62,max:147,min:85,n:19},
+    {name:'Michael Mommertz',range:62,max:142,min:80,n:21},
+    {name:'Pierre Schmitt',range:64,max:157,min:93,n:13},
+    {name:'Claudia Arts-Criee',range:67,max:152,min:85,n:14}
+  ];
+  const punkteVerlauf = [
+    {season:'2014/15',type:'Rückrunde',avg:104.3},
+    {season:'2015/16',type:'Hinrunde',avg:110.3},
+    {season:'2015/16',type:'Rückrunde',avg:116.8},
+    {season:'2016/17',type:'Rückrunde',avg:107.1},
+    {season:'2017/18',type:'Rückrunde',avg:109.4},
+    {season:'2018/19',type:'Hinrunde',avg:114.1},
+    {season:'2018/19',type:'Rückrunde',avg:101.8},
+    {season:'2019/20',type:'Hinrunde',avg:113.8},
+    {season:'2019/20',type:'Rückrunde',avg:127.7},
+    {season:'2020/21',type:'Hinrunde',avg:121.5},
+    {season:'2020/21',type:'Rückrunde',avg:128.6},
+    {season:'2021/22',type:'Hinrunde',avg:133.5},
+    {season:'2021/22',type:'Rückrunde',avg:133.5},
+    {season:'2022/23',type:'Hinrunde',avg:118.5},
+    {season:'2022/23',type:'Rückrunde',avg:126.8},
+    {season:'2023/24',type:'Hinrunde',avg:137.4},
+    {season:'2023/24',type:'Rückrunde',avg:134.5},
+    {season:'2024/25',type:'Hinrunde',avg:135.4},
+    {season:'2024/25',type:'Rückrunde',avg:119.3},
+    {season:'2025/26',type:'Hinrunde',avg:128.7},
+    {season:'2025/26',type:'Rückrunde',avg:135.4}
+  ];
+  const teilnehmerVerlauf = [
+    {season:'2014/15',type:'Rückrunde',count:26},
+    {season:'2015/16',type:'Hinrunde',count:27},
+    {season:'2015/16',type:'Rückrunde',count:25},
+    {season:'2016/17',type:'Rückrunde',count:31},
+    {season:'2017/18',type:'Rückrunde',count:28},
+    {season:'2018/19',type:'Hinrunde',count:25},
+    {season:'2018/19',type:'Rückrunde',count:24},
+    {season:'2019/20',type:'Hinrunde',count:26},
+    {season:'2019/20',type:'Rückrunde',count:22},
+    {season:'2020/21',type:'Hinrunde',count:23},
+    {season:'2020/21',type:'Rückrunde',count:24},
+    {season:'2021/22',type:'Hinrunde',count:24},
+    {season:'2021/22',type:'Rückrunde',count:22},
+    {season:'2022/23',type:'Hinrunde',count:26},
+    {season:'2022/23',type:'Rückrunde',count:23},
+    {season:'2023/24',type:'Hinrunde',count:31},
+    {season:'2023/24',type:'Rückrunde',count:28},
+    {season:'2024/25',type:'Hinrunde',count:31},
+    {season:'2024/25',type:'Rückrunde',count:31},
+    {season:'2025/26',type:'Hinrunde',count:29},
+    {season:'2025/26',type:'Rückrunde',count:26}
+  ];
 
   const maxWins = Math.max(...winRanking.map(w => w.wins));
+  const maxPodium = Math.max(...podium.map(p => p.count));
+  const maxEwig = Math.max(...ewigeTabelle.map(e => e.pts));
+  const maxLaterne = Math.max(...roteLaterne.map(l => l.count));
 
   let html = `<div class="regeln-wrap">
     <div class="regeln-section">
@@ -1719,11 +1949,48 @@ function renderHistorie() {
   html += `</div></div>
 
     <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">🥉</span><span class="label">Podestplätze (Top 3)</span></div>
+      <div class="regeln-section-body">`;
+  podium.slice(0,15).forEach((p,i) => {
+    const pct = Math.round(p.count / maxPodium * 100);
+    html += `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="font-weight:600;color:var(--text)">${i+1}. ${p.name}</span>
+        <span style="color:var(--muted)">${p.count}</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:4px"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px"></div></div>
+    </div>`;
+  });
+  html += `</div></div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">📊</span><span class="label">Ewige Tabelle (Gesamtpunktzahl)</span></div>
+      <div class="regeln-section-body" style="padding:0">
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:8px 10px;color:var(--muted)">#</th>
+            <th style="text-align:left;padding:8px 10px;color:var(--muted)">Name</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Punkte gesamt</th>
+          </tr></thead>
+          <tbody>`;
+  ewigeTabelle.forEach((e,i) => {
+    html += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 10px;color:var(--muted)">${i+1}</td>
+      <td style="padding:6px 10px;color:var(--text);font-weight:600">${e.name}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--text)">${e.pts}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+      </div>
+    </div>
+
+    <div class="regeln-section">
       <div class="regeln-section-header"><span class="icon">📈</span><span class="label">Rekorde</span></div>
       <div class="regeln-section-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:8px">
           <span style="font-size:13px;color:var(--muted)">Höchste Siegerpunktzahl<br><span style="font-size:11px">${maxWin.type} ${maxWin.season}</span></span>
-          <span style="text-align:right"><span style="font-weight:700;color:var(--accent2)">${maxWin.name}</span><br><span style="font-size:16px;font-weight:700;color:var(--accent2)">${maxWin.pts}</span></span>
+          <span style="text-align:right"><span style="font-weight:700;color:var(--text)">${maxWin.name}</span><br><span style="font-size:16px;font-weight:700;color:var(--text)">${maxWin.pts}</span></span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:8px;padding:10px 12px">
           <span style="font-size:13px;color:var(--muted)">Niedrigste Siegerpunktzahl<br><span style="font-size:11px">${minWin.type} ${minWin.season}</span></span>
@@ -1733,17 +2000,84 @@ function renderHistorie() {
     </div>
 
     <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">🔴</span><span class="label">Rote Laterne (Letzter Platz)</span></div>
+      <div class="regeln-section-body">`;
+  if (roteLaterne.length === 0) {
+    html += `<p style="font-size:12px;color:var(--muted)">Keine Daten.</p>`;
+  } else {
+    roteLaterne.slice(0,10).forEach((l,i) => {
+      const pct = Math.round(l.count / maxLaterne * 100);
+      html += `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span style="font-weight:600;color:var(--text)">${i+1}. ${l.name}</span>
+          <span style="color:var(--muted)">${l.count}×</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:4px"><div style="height:100%;width:${pct}%;background:var(--lose,#c0392b);border-radius:4px"></div></div>
+      </div>`;
+    });
+  }
+  html += `</div></div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">🎯</span><span class="label">Konstanteste Tipper (Platzierung, ≥10 Teiln.)</span></div>
+      <div class="regeln-section-body" style="padding:0">
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:8px 10px;color:var(--muted)">Name</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Streuung (σ)</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Teiln.</th>
+          </tr></thead>
+          <tbody>`;
+  konstanz.slice(0,10).forEach(k => {
+    html += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 10px;color:var(--text);font-weight:600">${k.name}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--text)">${k.std.toFixed(2)}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--muted)">${k.n}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+        <p style="font-size:11px;color:var(--muted);padding:8px 10px 0">Kleinere Zahl = konstantere Platzierung über die Zeit. Nur Tipper mit mind. 10 Teilnahmen.</p>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">↕️</span><span class="label">Punktespanne pro Person (≥10 Teiln.)</span></div>
+      <div class="regeln-section-body" style="padding:0">
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:8px 10px;color:var(--muted)">Name</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Spanne</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Max</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Min</th>
+          </tr></thead>
+          <tbody>`;
+  spanne.slice(0,8).forEach(s => {
+    html += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 10px;color:var(--text);font-weight:600">${s.name}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--text)">${s.range}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--muted)">${s.max}</td>
+      <td style="padding:6px 10px;text-align:right;color:var(--muted)">${s.min}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+        <p style="font-size:11px;color:var(--muted);padding:8px 10px 0">Kleinere Spanne = stabilere eigene Punktzahl über die Zeit (beste 8 gezeigt).</p>
+      </div>
+    </div>
+
+    <div class="regeln-section">
       <div class="regeln-section-header"><span class="icon">👥</span><span class="label">Teilnahmen &amp; Werte pro Tipper</span></div>
       <div class="regeln-section-body" style="padding:0">
         <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead><tr style="border-bottom:2px solid var(--border)">
-            <th style="text-align:left;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Name</th>
-            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Teiln.</th>
-            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Seit</th>
-            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">⌀ Punkte</th>
-            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">Beste Platz.</th>
-            <th style="text-align:right;padding:8px 10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif">⌀ Platz.</th>
+            <th style="text-align:left;padding:8px 10px;color:var(--muted)">Name</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Teiln.</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Seit</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">⌀ Punkte</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">Beste Platz.</th>
+            <th style="text-align:right;padding:8px 10px;color:var(--muted)">⌀ Platz.</th>
           </tr></thead>
           <tbody>`;
   stats.forEach(s => {
@@ -1757,6 +2091,22 @@ function renderHistorie() {
     </tr>`;
   });
   html += `</tbody></table></div>
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">📉</span><span class="label">Punkte-Entwicklung im Zeitverlauf</span></div>
+      <div class="regeln-section-body">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:6px">Ø Punkte aller Teilnehmer je Halbserie, chronologisch.</p>
+        ${sparkline(punkteVerlauf, 'avg', 'var(--accent)')}
+      </div>
+    </div>
+
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">👤</span><span class="label">Teilnehmerzahl-Entwicklung</span></div>
+      <div class="regeln-section-body">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:6px">Anzahl Teilnehmer je Halbserie, chronologisch.</p>
+        ${sparkline(teilnehmerVerlauf, 'count', 'var(--accent2)')}
       </div>
     </div>
   </div>`;
