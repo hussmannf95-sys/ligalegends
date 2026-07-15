@@ -322,6 +322,7 @@ const FUN_NAMES_MIDDLE = [
     <div class="tab" data-tab="statistik" onclick="switchTab('statistik')">📈 Statistik</div>
     <div class="tab" data-tab="kabinentalk" onclick="switchTab('kabinentalk')">💬 Kabinentalk <span id="kab-badge" style="display:none;background:#3B82F6;color:#fff;border-radius:99px;font-size:10px;padding:1px 6px;margin-left:4px;font-family:'Barlow',sans-serif;font-weight:700"></span></div>
     <div class="tab" data-tab="regeln" onclick="switchTab('regeln')">📋 Regeln</div>
+    <div class="tab" data-tab="hof" onclick="switchTab('hof')">🏆 Hall of Fame</div>
     <div class="tab" data-tab="maumau" onclick="switchTab('maumau')">MauMau Kopeken</div>
     <div id="admin-tab" class="tab" data-tab="admin" onclick="switchTab('admin')" style="display:none">⚙ Admin</div>
   </div>
@@ -337,6 +338,7 @@ const FUN_NAMES_MIDDLE = [
   <div id="tab-statistik" style="display:none"><div class="loading">Lade Statistik</div></div>
   <div id="tab-kabinentalk" style="display:none"><div class="loading">Lade Kabinentalk</div></div>
   <div id="tab-regeln" style="display:none"></div>
+  <div id="tab-hof" style="display:none"></div>
   <div id="tab-maumau" style="display:none"><div class="loading">Lade MauMau Kopeken</div></div>
   <div id="tab-admin" style="display:none"></div>
 </div>
@@ -686,6 +688,7 @@ async function loadTab(tab) {
   else if (tab === 'statistik')   await renderStatistik();
   else if (tab === 'kabinentalk') await renderKabinentalk();
   else if (tab === 'regeln')      renderRegeln();
+  else if (tab === 'hof')         renderHOF();
   else if (tab === 'admin')       renderAdmin();
 }
 
@@ -1607,6 +1610,94 @@ async function kabComment(postId) {
 }
 
 // ── REGELN ──
+function renderHOF() {
+  const el = document.getElementById('tab-hof');
+  const seasons = [
+    { season: '2025/26', rows: [
+      { hs: 'Rückrunde', name: 'Ralf Ries', pts: 153 },
+      { hs: 'Hinrunde',  name: 'Ralf Ries', pts: 153 },
+    ]},
+    { season: '2024/25', rows: [
+      { hs: 'Rückrunde', name: 'Frank Poschmann', pts: 142 },
+      { hs: 'Hinrunde',  name: 'Sebastian Runge', pts: 156 },
+    ]},
+    { season: '2023/24', rows: [
+      { hs: 'Rückrunde', name: 'Frank Poschmann', pts: 178 },
+      { hs: 'Hinrunde',  name: 'Georg Sampers', pts: 162 },
+    ]},
+    { season: '2022/23', rows: [
+      { hs: 'Rückrunde', name: 'Ralf Ries', pts: 158 },
+      { hs: 'Hinrunde',  name: 'Sebastian Runge', pts: 154 },
+    ]},
+    { season: '2021/22', rows: [
+      { hs: 'Rückrunde', name: 'Ute Dietrich & Claudia Arts-Criee', pts: 152 },
+      { hs: 'Hinrunde',  name: 'Dieter Hussmann', pts: 156 },
+    ]},
+    { season: '2020/21', rows: [
+      { hs: 'Rückrunde', name: 'Robert Dörnenburg & Thomas Schmitt', pts: 148 },
+      { hs: 'Hinrunde',  name: 'Marion Daniel & Ute Dietrich', pts: 140 },
+    ]},
+    { season: '2019/20', rows: [
+      { hs: 'Rückrunde', name: 'Dieter Hussmann', pts: 148 },
+      { hs: 'Hinrunde',  name: 'Claudia Arts-Criee', pts: 137 },
+    ]},
+    { season: '2018/19', rows: [
+      { hs: 'Rückrunde', name: 'Sebastian Runge', pts: 119 },
+      { hs: 'Hinrunde',  name: 'Michael Stöckigt', pts: 140 },
+    ]},
+    { season: '2017/18', rows: [
+      { hs: 'Rückrunde', name: 'Robert Dörnenburg', pts: 132 },
+    ]},
+    { season: '2016/17', rows: [
+      { hs: 'Rückrunde', name: 'Sebastian Runge', pts: 129 },
+    ]},
+    { season: '2015/16', rows: [
+      { hs: 'Rückrunde', name: 'Marion Gudowski', pts: 151 },
+      { hs: 'Hinrunde',  name: 'Marion Daniel', pts: 132 },
+    ]},
+    { season: '2014/15', rows: [
+      { hs: 'Rückrunde', name: 'Jürgen Zahren', pts: 123 },
+    ]},
+  ];
+  const maxPts = Math.max(...seasons.flatMap(s => s.rows.map(r => r.pts)));
+
+  let html = `<div class="regeln-wrap">
+    <div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon">🏆</span><span class="label">Hall of Fame</span></div>
+      <div class="regeln-section-body">
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:8px">
+          Seit 1992 wird bei Tippen seit 1992 getippt – was als kleine Wette unter Freunden begann, ist über drei Jahrzehnte zu einer festen Institution geworden.
+          Dank gebührt den Gründungsvätern, die diese Idee ins Leben gerufen und über all die Jahre weiterentwickelt haben. Besonderer Dank gilt den drei
+          „Ewigen": <strong style="color:var(--accent)">Manfred Krieger, Stefan Daniel und Dieter Hussmann</strong> – seit der allerersten Tipprunde ununterbrochen dabei.
+        </p>
+        <p style="font-size:11px;color:var(--muted)">
+          Basis: 21 von 24 möglichen Halbserien seit 2014/15 (Hinrunde 2014/15, 2016/17 und 2017/18 sind nicht mehr vorhanden). Höchste je erzielte Punktzahl ist hervorgehoben.
+        </p>
+      </div>
+    </div>`;
+
+  seasons.forEach(s => {
+    html += `<div class="regeln-section">
+      <div class="regeln-section-header"><span class="icon"></span><span class="label">${s.season}</span></div>
+      <div class="regeln-section-body">`;
+    s.rows.forEach(r => {
+      const isMax = r.pts === maxPts;
+      const rowStyle = isMax
+        ? 'background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);border-radius:8px;padding:8px 10px;'
+        : 'padding:8px 10px;';
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;${rowStyle}margin-bottom:6px">
+        <span style="font-size:12px;color:var(--muted);min-width:80px">${r.hs}</span>
+        <span style="flex:1;font-size:14px;font-weight:600;color:${isMax ? 'var(--accent2)' : 'var(--text)'}">${r.name}${isMax ? ' <span style="font-size:10px;font-weight:700;background:var(--accent2);color:#000;border-radius:99px;padding:2px 8px;margin-left:6px">REKORD</span>' : ''}</span>
+        <span style="font-size:14px;color:${isMax ? 'var(--accent2)' : 'var(--muted)'};font-weight:${isMax ? '700' : '400'}">${r.pts}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
 function renderRegeln() {
   const el = document.getElementById('tab-regeln');
   el.innerHTML = `<div class="regeln-wrap">
