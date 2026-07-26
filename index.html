@@ -1045,6 +1045,7 @@ async function renderUebersicht() {
     const playerPts = computeRankingPts(1, currentSpieltag);
     const ranked    = rankPlayers(playerPts);
     const namedPlayers = assignFunNames(ranked);
+    const prizeCount = Math.floor(namedPlayers.length / 2);
     if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
     const now = new Date();
     const lastFetch = allMatchesTTL[currentSpieltag];
@@ -1056,6 +1057,7 @@ async function renderUebersicht() {
       </button>
       <button onclick="refreshUebersicht()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Aktualisieren</button>
       <span style="font-size:11px;color:var(--muted)">API: vor ${esc(ageStr)}</span>
+      <span style="font-size:11px;color:var(--accent2);margin-left:auto">🏅 Preisrang: Top ${prizeCount} von ${namedPlayers.length}</span>
     </div>`;
     let html;
     if (!matchesExpanded) {
@@ -1071,7 +1073,8 @@ async function renderUebersicht() {
           if (tip && sc !== null) { const pts = calcPoints(tip.home,tip.away,sc.home,sc.away,tip.joker); if (pts) stPts += pts; }
         });
         const totalPts = playerPts[p.id] || 0;
-        html += `<tr class="tipper-row">
+        const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
+        html += `<tr class="tipper-row"${isCutoffRow ? ' style="border-bottom:2px solid var(--accent2)"' : ''}>
           <td class="rank-cell" style="width:28px"><span class="${rankClass}">${idx+1}</span></td>
           <td class="name-cell" style="padding:0 10px"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>
           <td class="sum-cell" style="padding-right:8px">${stPts}</td>
@@ -1097,7 +1100,8 @@ async function renderUebersicht() {
       namedPlayers.forEach((p, idx) => {
         const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
         let stPts = 0;
-        html += `<tr class="tipper-row">
+        const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
+        html += `<tr class="tipper-row"${isCutoffRow ? ' style="border-bottom:2px solid var(--accent2)"' : ''}>
           <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
           <td class="name-cell"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
         matches.forEach(m => {
