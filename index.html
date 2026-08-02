@@ -2389,6 +2389,7 @@ function renderPlayerList() {
   return adminPlayerList.map(p => `<div class="player-item">
     <span class="pname">${esc(p.name)}</span>
     <span class="ppin">PIN: ${esc(p.pin)}</span>
+    <button class="btn-sm" onclick="resetPlayerPin('${esc(p.id)}', '${esc(p.name)}')">🔑 PIN ändern</button>
     <button class="btn-danger" onclick="deletePlayer('${esc(p.id)}')">✕</button>
   </div>`).join('');
 }
@@ -2416,6 +2417,22 @@ async function deletePlayer(id) {
   await loadPlayers();
   await loadAdminPlayers();
   document.getElementById('player-list').innerHTML = renderPlayerList();
+}
+
+async function resetPlayerPin(id, name) {
+  const newPin = prompt(`Neue PIN für ${name} (4–6 Ziffern):`);
+  if (newPin === null) return; // abgebrochen
+  const pin = newPin.trim();
+  if (pin.length < 4 || pin.length > 6 || !/^\d+$/.test(pin)) {
+    alert('PIN muss aus 4–6 Ziffern bestehen.');
+    return;
+  }
+  if (!db) { alert('Supabase nicht konfiguriert.'); return; }
+  const { data, error } = await db.functions.invoke('admin-reset-pin', { body: { player_id: id, pin } });
+  if (error || data?.error) { alert('Fehler beim Ändern der PIN: ' + (data?.error || error.message)); return; }
+  await loadAdminPlayers();
+  document.getElementById('player-list').innerHTML = renderPlayerList();
+  alert(`✅ PIN für ${name} wurde geändert.`);
 }
 
 async function loadAdminScores() {
