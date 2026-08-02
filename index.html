@@ -166,7 +166,6 @@ header {
 .saison-table th { background: var(--surface2); padding: 7px 6px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: .4px; color: var(--muted); border-bottom: 2px solid var(--border); white-space: nowrap; }
 .saison-table th.name-th { text-align: left; padding-left: 10px; min-width: 110px; }
 .saison-table td { padding: 6px 4px; border-bottom: 1px solid var(--border); text-align: center; font-family: 'Barlow', sans-serif; font-size: 12px; }
-.saison-table tr.winner td { background: rgba(0,196,160,.05); }
 .saison-table tr.loser  td { background: rgba(232,65,65,.04); }
 .saison-table tr:hover td { filter: brightness(1.08); }
 .s-rank  { width: 26px; font-family:'Barlow Condensed';font-weight:700;font-size:14px;text-align:center; }
@@ -440,6 +439,21 @@ function assignFunNames(players) {
     p.funname = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length - 1)];
   });
   return result;
+}
+
+// ── Preisrang-Zeilenfarbe: Platz 1–3 bleiben Gold/Silber/Bronze (siehe rank-1/2/3),
+// ab Platz 4 bis zur Preisrang-Grenze wird die Zeile grün eingefärbt,
+// mit abnehmender Intensität in Richtung der Grenze. ──
+function prizeRowStyle(idx, prizeCount, isCutoffRow) {
+  const parts = [];
+  if (prizeCount > 3 && idx >= 3 && idx < prizeCount) {
+    const start = 3, end = prizeCount - 1;
+    const t = end > start ? (idx - start) / (end - start) : 0;
+    const opacity = (0.16 - t * 0.13).toFixed(3);
+    parts.push(`background:rgba(0,196,160,${opacity})`);
+  }
+  if (isCutoffRow) parts.push('border-bottom:2px solid var(--accent)');
+  return parts.length ? ` style="${parts.join(';')}"` : '';
 }
 
 // ══════════════════════════════════════
@@ -1074,7 +1088,7 @@ async function renderUebersicht() {
         });
         const totalPts = playerPts[p.id] || 0;
         const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
-        html += `<tr class="tipper-row"${isCutoffRow ? ' style="border-bottom:2px solid var(--accent)"' : ''}>
+        html += `<tr class="tipper-row"${prizeRowStyle(idx, prizeCount, isCutoffRow)}>
           <td class="rank-cell" style="width:28px"><span class="${rankClass}">${idx+1}</span></td>
           <td class="name-cell" style="padding:0 10px"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>
           <td class="sum-cell" style="padding-right:8px">${stPts}</td>
@@ -1101,7 +1115,7 @@ async function renderUebersicht() {
         const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
         let stPts = 0;
         const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
-        html += `<tr class="tipper-row"${isCutoffRow ? ' style="border-bottom:2px solid var(--accent)"' : ''}>
+        html += `<tr class="tipper-row"${prizeRowStyle(idx, prizeCount, isCutoffRow)}>
           <td class="rank-cell"><span class="${rankClass}">${idx+1}</span></td>
           <td class="name-cell"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
         matches.forEach(m => {
@@ -1233,7 +1247,7 @@ async function renderSaison() {
       const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
       const rowClass  = isWinner ? 'winner' : 'loser';
       const isCutoffRow = half > 0 && i === half - 1;
-      html += `<tr class="${rowClass}"${isCutoffRow ? ' style="border-bottom:2px solid var(--accent)"' : ''}>`;
+      html += `<tr class="${rowClass}"${prizeRowStyle(i, half, isCutoffRow)}>`;
       html += `<td class="s-rank"><span class="${rankClass}">${i+1}</span></td>`;
       html += `<td class="s-name"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
       stArr.forEach(st => {
