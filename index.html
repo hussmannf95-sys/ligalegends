@@ -433,10 +433,23 @@ function assignFunNames(players) {
     else break;
   }
   const midPlayers = result.slice(firstNonGoat, firstEhren);
-  const midSlots   = midPlayers.length;
-  midPlayers.forEach((p, i) => {
-    const idx = midSlots <= 1 ? 0 : Math.floor(i / (midSlots - 1) * (FUN_NAMES_MIDDLE.length - 1));
-    p.funname = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length - 1)];
+  // Gleichstand-Fix: Spieler mit identischer Punktzahl werden zu einer Gruppe
+  // zusammengefasst und bekommen denselben Spitznamen (statt nach reiner
+  // Listenposition verteilt zu werden, was bei Gleichstand zu unterschiedlichen
+  // Namen für punktgleiche Spieler führte).
+  const groups = [];
+  midPlayers.forEach(p => {
+    if (!groups.length || groups[groups.length - 1].pts !== p.pts) {
+      groups.push({ pts: p.pts, players: [p] });
+    } else {
+      groups[groups.length - 1].players.push(p);
+    }
+  });
+  const groupCount = groups.length;
+  groups.forEach((g, i) => {
+    const idx = groupCount <= 1 ? 0 : Math.floor(i / (groupCount - 1) * (FUN_NAMES_MIDDLE.length - 1));
+    const name = FUN_NAMES_MIDDLE[Math.min(idx, FUN_NAMES_MIDDLE.length - 1)];
+    g.players.forEach(p => { p.funname = name; });
   });
   return result;
 }
