@@ -831,7 +831,7 @@ async function renderStatistik() {
         if (Array.isArray(allMatches[st])) {
           const m = allMatches[st].find(x => x.matchID === matchId);
           if (m?.matchResults?.length) {
-            const fin = m.matchResults.find(r => r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];
+            const fin = m.matchResults.find(r=>r.resultTypeID===2)||m.matchResults[m.matchResults.length-1];
             if (fin != null && fin.pointsTeam1 != null) sc = { home: fin.pointsTeam1, away: fin.pointsTeam2 };
           }
         }
@@ -1058,6 +1058,36 @@ function drawRankChart() {
   }
 }
 
+// ── Gemeinsame Rang-/Preisrang-Berechnung mit Gleichstand-Behandlung ──
+// "sorted" muss bereits absteigend nach .pts sortiert sein.
+// Liefert:
+//   ranks[i]   – angezeigter Platz für Index i (geteilte Plätze bei Gleichstand,
+//                Standard-Sportranking: z.B. 1,1,3,4,4,6 – kein "2" oder "5")
+//   prizeCount – Anzahl der Gewinner-Plätze (Grün-Grenze). Normalerweise die Hälfte
+//                aller Spieler, aber wenn an der Grenze Gleichstand herrscht, wird
+//                die komplette Gleichstandsgruppe mit eingeschlossen (niemand kann
+//                innerhalb der Gruppe "besser" sein als der Rest → geteilter Platz).
+function computeRankInfo(sorted) {
+  const n = sorted.length;
+  const ranks = new Array(n);
+  for (let i = 0; i < n; i++) {
+    ranks[i] = (i > 0 && sorted[i].pts === sorted[i - 1].pts) ? ranks[i - 1] : i + 1;
+  }
+  const naiveHalf = Math.floor(n / 2);
+  let prizeCount = naiveHalf;
+  if (naiveHalf > 0 && naiveHalf <= n) {
+    const cutoffPts = sorted[naiveHalf - 1].pts;
+    while (prizeCount < n && sorted[prizeCount].pts === cutoffPts) prizeCount++;
+  }
+  return { ranks, prizeCount };
+}
+
+// Gold/Silber/Bronze-Klasse anhand des (evtl. geteilten) Platzes statt der reinen
+// Array-Position – bei Gleichstand auf Platz 1 bekommen z.B. zwei Spieler 'rank-1'.
+function medalClass(rank) {
+  return rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+}
+
 // ── ÜBERSICHT ──
 async function renderUebersicht() {
   const el = document.getElementById('tab-uebersicht');
@@ -1069,7 +1099,7 @@ async function renderUebersicht() {
     const playerPts = computeRankingPts(1, currentSpieltag);
     const ranked    = rankPlayers(playerPts);
     const namedPlayers = assignFunNames(ranked);
-    const prizeCount = Math.floor(namedPlayers.length / 2);
+    const { ranks: uebersichtRanks, prizeCount } = computeRankInfo(namedPlayers);
     if (!matches.length) { el.innerHTML = '<div class="loading">Keine Daten für Spieltag ' + currentSpieltag + '</div>'; return; }
     const now = new Date();
     const lastFetch = allMatchesTTL[currentSpieltag];
@@ -1089,7 +1119,7 @@ async function renderUebersicht() {
       html += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
       html += '<tr class="match-header"><th style="width:28px"></th><th style="padding:8px 10px;text-align:left">Spieler</th><th style="text-align:right;padding:8px 6px;font-size:11px;color:var(--muted)">Spielt.</th><th style="text-align:right;padding:8px 10px;font-size:11px;color:var(--muted)">Ges.</th></tr>';
       namedPlayers.forEach((p, idx) => {
-        const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+        const rankClass = medalClass(uebersichtRanks[idx]);
         let stPts = 0;
         matches.forEach(m => {
           const tip = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
@@ -1099,7 +1129,7 @@ async function renderUebersicht() {
         const totalPts = playerPts[p.id] || 0;
         const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
         html += `<tr class="tipper-row"${prizeRowStyle(idx, prizeCount, isCutoffRow)}>
-          <td class="rank-cell" style="width:28px"><span class="${rankClass}"${prizeRankColor(idx, prizeCount)}>${idx+1}</span></td>
+          <td class="rank-cell" style="width:28px"><span class="${rankClass}"${prizeRankColor(idx, prizeCount)}>${uebersichtRanks[idx]}</span></td>
           <td class="name-cell" style="padding:0 10px"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>
           <td class="sum-cell" style="padding-right:8px">${stPts}</td>
           <td class="total-cell" style="padding-right:12px">${totalPts}</td></tr>`;
@@ -1122,11 +1152,11 @@ async function renderUebersicht() {
       });
       html += '<td></td><td></td></tr>';
       namedPlayers.forEach((p, idx) => {
-        const rankClass = idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'';
+        const rankClass = medalClass(uebersichtRanks[idx]);
         let stPts = 0;
         const isCutoffRow = prizeCount > 0 && idx === prizeCount - 1;
         html += `<tr class="tipper-row"${prizeRowStyle(idx, prizeCount, isCutoffRow)}>
-          <td class="rank-cell"><span class="${rankClass}"${prizeRankColor(idx, prizeCount)}>${idx+1}</span></td>
+          <td class="rank-cell"><span class="${rankClass}"${prizeRankColor(idx, prizeCount)}>${uebersichtRanks[idx]}</span></td>
           <td class="name-cell"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
         matches.forEach(m => {
           const tip     = ((allTipps[currentSpieltag]||{})[m.matchID]||{})[p.id];
@@ -1237,11 +1267,17 @@ async function renderSaison() {
     allPlayers.forEach(p => { totals[p.id] = stArr.reduce((s, st) => s + (playerPtsPerST[p.id][st] || 0), 0); });
     const ranked = [...allPlayers].sort((a, b) => totals[b.id] - totals[a.id]).map(p => ({ ...p, pts: totals[p.id] }));
     const named  = assignFunNames(ranked);
-    const half = Math.floor(named.length / 2);
-    function ptsCls(pts) {
-      if (pts === 6) return 'p6'; if (pts === 4) return 'p4'; if (pts === 3) return 'p3';
-      if (pts === 2) return 'p2'; if (pts === 1) return 'p1'; return 'p0';
-    }
+    const { ranks: saisonRanks, prizeCount: half } = computeRankInfo(named);
+    // Höchste Tagespunktzahl pro Spieltag ermitteln, um die Spieltagbesten hervorzuheben
+    const maxPerSt = {};
+    stArr.forEach(st => {
+      let max = -Infinity;
+      allPlayers.forEach(p => {
+        const v = playerPtsPerST[p.id][st];
+        if (v !== undefined && v > max) max = v;
+      });
+      maxPerSt[st] = max;
+    });
     let html = `<div class="saison-wrap">
       <div style="padding:0 0 12px;display:flex;align-items:center;gap:8px">
         <button onclick="refreshAll()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🔄 Neu laden</button>
@@ -1254,15 +1290,16 @@ async function renderSaison() {
     html += '<th style="border-left:1px solid var(--border)">∑</th></tr></thead><tbody>';
     named.forEach((p, i) => {
       const isWinner = i < half;
-      const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+      const rankClass = medalClass(saisonRanks[i]);
       const rowClass  = isWinner ? 'winner' : 'loser';
       const isCutoffRow = half > 0 && i === half - 1;
       html += `<tr class="${rowClass}"${prizeRowStyle(i, half, isCutoffRow)}>`;
-      html += `<td class="s-rank"><span class="${rankClass}"${prizeRankColor(i, half)}>${i+1}</span></td>`;
+      html += `<td class="s-rank"><span class="${rankClass}"${prizeRankColor(i, half)}>${saisonRanks[i]}</span></td>`;
       html += `<td class="s-name"><div class="realname">${esc(p.name)}</div><div class="funname">${esc(p.funname||'')}</div></td>`;
       stArr.forEach(st => {
         const pts = playerPtsPerST[p.id][st];
-        html += pts === undefined ? `<td class="p0">–</td>` : `<td class="${ptsCls(pts)}">${pts}</td>`;
+        const cls = pts === undefined ? 'p0' : (pts === maxPerSt[st] ? 'p6' : 'p1');
+        html += pts === undefined ? `<td class="${cls}">–</td>` : `<td class="${cls}">${pts}</td>`;
       });
       html += `<td class="s-sum">${totals[p.id]}</td></tr>`;
     });
