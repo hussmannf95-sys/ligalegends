@@ -1446,7 +1446,7 @@ async function saveTipps(matchIDs) {
       return;
     }
     if (j && j.checked) jokerCount++;
-    rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: h_val, tip_away: a_val, joker: j ? j.checked : false });
+   rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: h_val, tip_away: a_val, joker: j ? j.checked : false, kickoff_at: kickoff ? kickoff.toISOString() : null });
   }
 
   if (jokerCount > 1) {
