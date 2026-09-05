@@ -1371,17 +1371,70 @@ function onJokerChange(cb, matchID) {
   cb.closest('.joker-toggle').classList.add('active');
 }
 
+// ── ERSETZT die bisherige saveTipps()-Funktion (ca. Zeile 1361–1393) ──
+// Grund für den Fix: Die Sperre ("disabled") wird nur EINMAL beim Rendern
+// des Tabs gesetzt. Ist der Tab schon offen und der Anstoß verstreicht,
+// bleibt das Feld im Browser weiterhin bearbeitbar UND saveTipps() hat
+// bisher nur auf dieses (veraltete) DOM-Attribut vertraut, statt die
+// echte Kickoff-Zeit neu zu prüfen. Genau das hat Ralf ausgenutzt
+// (unbewusst, weil der Tab einfach offen war).
+//
+// Zusätzlich wurde ein bereits gespeicherter Joker auf einem inzwischen
+// gesperrten Spiel beim Zählen komplett ignoriert – dadurch konnte ein
+// zweiter Joker auf ein anderes Spiel gesetzt werden, ohne dass die
+// "nur 1 Joker"-Prüfung anschlug.
+
 async function saveTipps(matchIDs) {
   const msg = document.getElementById('save-msg');
   msg.className = 'msg msg-ok'; msg.textContent = 'Speichere…';
+
+  // Frische Spieldaten laden (force refresh), damit die Kickoff-Prüfung
+  // NICHT auf einem alten Cache/DOM-Zustand basiert, sondern auf der
+  // tatsächlich aktuellen Zeit gegen den echten Anstoß.
+  let freshMatches;
+  try {
+    freshMatches = await fetchMatches(currentSpieltag, true);
+  } catch(e) {
+    freshMatches = allMatches[currentSpieltag] || [];
+  }
+  const matchByID = {};
+  freshMatches.forEach(m => { matchByID[m.matchID] = m; });
+
+  // Auch Ergebnisse frisch prüfen (falls der Admin zwischenzeitlich
+  // ein Ergebnis eingetragen hat, während der Tab offen war)
+  await ensureAdminScores(currentSpieltag);
+
+  const existingTipps = (allTipps[currentSpieltag] || {});
   const rows = [];
   let jokerCount = 0;
+  let staleAttempt = false; // true = Nutzer wollte etwas ändern, das inzwischen gesperrt ist
+
   for (const mid of matchIDs) {
+    const m = matchByID[mid];
+    const kickoff  = m ? new Date(m.matchDateTimeUTC) : null;
+    const started  = kickoff ? kickoff < new Date() : false;
+    const hasResult = !!(allScores[currentSpieltag] && allScores[currentSpieltag][mid]);
+    const locked   = started || hasResult;
+
     const h = document.getElementById('th-'+mid);
     const a = document.getElementById('ta-'+mid);
     const j = document.getElementById('tj-'+mid);
-    if (!h || h.disabled) continue;
-    if (h.value === '' || a.value === '') continue;
+
+    if (locked) {
+      // Spiel ist laut echter Kickoff-Zeit / Ergebnis gesperrt.
+      // Bereits gespeicherten Joker trotzdem mitzählen, sonst könnte
+      // ein zweiter Joker auf ein anderes Spiel gesetzt werden.
+      const savedTip = (existingTipps[mid] || {})[currentUser.id];
+      if (savedTip?.joker) jokerCount++;
+
+      // Falls das Feld im Browser noch nicht deaktiviert war (Tab war
+      // vor Anpfiff offen), hat der Nutzer evtl. versucht zu speichern.
+      if (h && !h.disabled) staleAttempt = true;
+      continue;
+    }
+
+    if (!h || h.value === '' || a.value === '') continue;
+
     // ── INPUT VALIDIERUNG ──
     let h_val, a_val;
     try {
@@ -1395,14 +1448,35 @@ async function saveTipps(matchIDs) {
     if (j && j.checked) jokerCount++;
     rows.push({ player_id: currentUser.id, spieltag: currentSpieltag, match_id: mid, tip_home: h_val, tip_away: a_val, joker: j ? j.checked : false });
   }
-  if (jokerCount > 1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
+
+  if (jokerCount > 1) {
+    msg.className = 'msg msg-err';
+    msg.textContent = 'Nur 1 Joker pro Spieltag erlaubt (ein anderes Spiel hat bereits einen gespeicherten Joker)!';
+    return;
+  }
+
   if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
-  const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
-  if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(error.message); return; }
+
+  if (rows.length > 0) {
+    const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
+    if (error) { msg.className = 'msg msg-err'; msg.textContent = 'Fehler: ' + esc(error.message); return; }
+  }
+
   delete allTipps[currentSpieltag];
   await loadTipps(currentSpieltag);
   tabLoaded['uebersicht'] = false;
-  msg.className='msg msg-ok'; msg.textContent='✅ Tipps gespeichert!';
+
+  if (staleAttempt) {
+    msg.className = 'msg msg-err';
+    msg.textContent = '⚠ Mindestens ein Spiel hat inzwischen angepfiffen – deine Änderung dort wurde NICHT übernommen. Andere Tipps wurden gespeichert.';
+  } else {
+    msg.className = 'msg msg-ok';
+    msg.textContent = '✅ Tipps gespeichert!';
+  }
+
+  // Ansicht neu rendern, damit inzwischen gesperrte Spiele sofort als
+  // gesperrt angezeigt werden (statt erst beim nächsten Tab-Wechsel).
+  renderTippen();
 }
 
 // ── SPIELER-DETAIL STATS ──
