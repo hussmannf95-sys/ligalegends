@@ -1389,8 +1389,26 @@ async function saveTipps(matchIDs) {
   }
   if (jokerCount > 1) { msg.className='msg msg-err'; msg.textContent='Nur 1 Joker pro Spieltag!'; return; }
   if (!db) { msg.textContent = 'Demo-Modus: Supabase nicht konfiguriert.'; return; }
+
+  // Schritt 1: alle betroffenen Zeilen zunächst OHNE Joker speichern.
+  // Verhindert, dass der DB-Constraint "ein Joker pro Spieler/Spieltag" durch die
+  // Verarbeitungsreihenfolge im Batch verletzt wird, wenn der Joker von einem
+  // Spiel auf ein anderes verschoben wird.
+  const clearRows = rows.map(r => ({ ...r, joker: false }));
+  const { error: clearError } = await db.from('tipps').upsert(clearRows, { onConflict: 'player_id,spieltag,match_id' });
+  if (clearError) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(clearError.message); return; }
+
+  // Schritt 2: die tatsächlichen Werte inkl. gewähltem Joker speichern.
   const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
-  if (error) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(error.message); return; }
+  if (error) {
+    msg.className='msg msg-err';
+    if (String(error.message||'').includes('tipps_one_joker_per_player_spieltag')) {
+      msg.textContent = 'Du hast bereits auf ein anderes, schon begonnenes Spiel dieses Spieltags einen Joker gesetzt – der lässt sich jetzt nicht mehr verschieben.';
+    } else {
+      msg.textContent = 'Fehler: '+esc(error.message);
+    }
+    return;
+  }
   delete allTipps[currentSpieltag];
   await loadTipps(currentSpieltag);
   tabLoaded['uebersicht'] = false;
