@@ -1097,6 +1097,9 @@ async function renderUebersicht() {
     const matches = await fetchMatches(currentSpieltag);
     await ensureAdminScores(currentSpieltag);
     await loadTipps(currentSpieltag);
+    const priorSTs = [];
+    for (let s = 1; s < currentSpieltag; s++) priorSTs.push(s);
+    await Promise.all(priorSTs.map(st => fetchMatches(st)));
     const playerPts = computeRankingPts(1, currentSpieltag);
     const ranked    = rankPlayers(playerPts);
     const namedPlayers = assignFunNames(ranked);
