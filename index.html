@@ -1330,7 +1330,7 @@ async function renderTippen() {
     const kickoff   = new Date(m.matchDateTimeUTC);
     const started   = kickoff < new Date();
     const hasResult = !!(allScores[currentSpieltag] && allScores[currentSpieltag][m.matchID]);
-    const locked    = started || hasResult;
+    const locked    = started;
     const jChecked  = myTip.joker ? 'checked' : '';
     const disabled  = locked ? 'disabled' : '';
     const lockNote  = locked
