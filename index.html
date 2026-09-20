@@ -622,15 +622,29 @@ async function fetchMatches(spieltag, forceRefresh = false) {
       `https://api.openligadb.de/getmatchdata/${LIGA}/${SAISON}/${spieltag}`,
       { signal: ctrl.signal }
     );
-    clearTimeout(timer);
+        clearTimeout(timer);
     const data = await r.json();
     allMatches[spieltag] = Array.isArray(data) ? data : [];
     allMatchesTTL[spieltag] = Date.now();
+    syncMatchKickoffs(spieltag, allMatches[spieltag]); // NEU
     return allMatches[spieltag];
   } catch(e) {
     if (allMatches[spieltag] === undefined) allMatches[spieltag] = [];
     return allMatches[spieltag];
   }
+}
+
+// NEU: schreibt Anstoßzeiten in Supabase, damit der Server die Sperre kennt
+async function syncMatchKickoffs(spieltag, matches) {
+  if (!db || !Array.isArray(matches) || !matches.length) return;
+  try {
+    const rows = matches.map(m => ({
+      match_id: m.matchID,
+      spieltag: spieltag,
+      kickoff_utc: m.matchDateTimeUTC
+    }));
+    await db.from('match_kickoffs').upsert(rows, { onConflict: 'match_id' });
+  } catch(e) { console.warn('syncMatchKickoffs failed:', e); }
 }
 
 async function detectCurrentSpieltag() {
@@ -1395,15 +1409,13 @@ async function saveTipps(matchIDs) {
   // Verarbeitungsreihenfolge im Batch verletzt wird, wenn der Joker von einem
   // Spiel auf ein anderes verschoben wird.
   const clearRows = rows.map(r => ({ ...r, joker: false }));
-  const { error: clearError } = await db.from('tipps').upsert(clearRows, { onConflict: 'player_id,spieltag,match_id' });
-  if (clearError) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(clearError.message); return; }
-
-  // Schritt 2: die tatsächlichen Werte inkl. gewähltem Joker speichern.
-  const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
+    const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
   if (error) {
     msg.className='msg msg-err';
     if (String(error.message||'').includes('tipps_one_joker_per_player_spieltag')) {
       msg.textContent = 'Du hast bereits auf ein anderes, schon begonnenes Spiel dieses Spieltags einen Joker gesetzt – der lässt sich jetzt nicht mehr verschieben.';
+    } else if (String(error.message||'').includes('tipp_locked_kickoff_passed')) {
+      msg.textContent = 'Ein Spiel in deinem Tipp hat bereits begonnen – bitte Seite neu laden und erneut versuchen.';
     } else {
       msg.textContent = 'Fehler: '+esc(error.message);
     }
