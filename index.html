@@ -1408,8 +1408,12 @@ async function saveTipps(matchIDs) {
   // Verhindert, dass der DB-Constraint "ein Joker pro Spieler/Spieltag" durch die
   // Verarbeitungsreihenfolge im Batch verletzt wird, wenn der Joker von einem
   // Spiel auf ein anderes verschoben wird.
-  const clearRows = rows.map(r => ({ ...r, joker: false }));
-    const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
+    const clearRows = rows.map(r => ({ ...r, joker: false }));
+  const { error: clearError } = await db.from('tipps').upsert(clearRows, { onConflict: 'player_id,spieltag,match_id' });
+  if (clearError) { msg.className='msg msg-err'; msg.textContent='Fehler: '+esc(clearError.message); return; }
+
+  // Schritt 2: die tatsächlichen Werte inkl. gewähltem Joker speichern.
+  const { error } = await db.from('tipps').upsert(rows, { onConflict: 'player_id,spieltag,match_id' });
   if (error) {
     msg.className='msg msg-err';
     if (String(error.message||'').includes('tipps_one_joker_per_player_spieltag')) {
