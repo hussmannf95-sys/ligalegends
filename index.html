@@ -575,11 +575,28 @@ async function loadAdminPlayers() {
   adminPlayerList = data || [];
 }
 
+// ── Alle Zeilen einer Tabelle seitenweise laden ──
+// Supabase liefert pro Abfrage höchstens 1000 Zeilen. Ohne Seitenweise-Laden
+// fehlen ab dem ~4. Spieltag zufällig Tipps (besonders frisch geänderte).
+async function fetchAllRows(table, orderCols = []) {
+  const PAGE = 1000;
+  let all = [];
+  for (let from = 0; ; from += PAGE) {
+    let q = db.from(table).select('*');
+    orderCols.forEach(c => { q = q.order(c, { ascending: true }); });
+    const { data, error } = await q.range(from, from + PAGE - 1);
+    if (error) throw error;
+    all = all.concat(data || []);
+    if (!data || data.length < PAGE) break;
+  }
+  return all;
+}
+
 // ── Bulk-load ALL tipps ──
 async function loadAllTipps() {
   if (!db) return;
   try {
-    const { data } = await db.from('tipps').select('*');
+    const data = await fetchAllRows('tipps', ['spieltag', 'match_id', 'player_id']);
     allTipps = {};
     (data||[]).forEach(t => {
       if (!allTipps[t.spieltag]) allTipps[t.spieltag] = {};
@@ -2467,9 +2484,8 @@ async function downloadBackup() {
     const wb = XLSX.utils.book_new();
     const results = [];
     for (const t of tables) {
-      const { data, error } = await db.from(t).select('*');
-      if (error) { results.push(`${t}: Fehler`); continue; }
-      const rows = data || [];
+      let rows;
+      try { rows = await fetchAllRows(t); } catch (err) { results.push(`${t}: Fehler`); continue; }
       const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ info: 'keine Daten' }]);
       XLSX.utils.book_append_sheet(wb, ws, t.slice(0, 31));
       results.push(`${t}: ${rows.length}`);
