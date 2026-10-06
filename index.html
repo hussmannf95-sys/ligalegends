@@ -267,6 +267,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_LOQizBgy8KNYFVkqytyTUQ_y1suFgjy';
 /* ADMIN_PASSWORD wurde entfernt – Login läuft über echte Supabase-Auth-Accounts */
 const AUTH_PW_PREFIX = 'tp92-'; // muss exakt zu PW_PREFIX in den Edge Functions passen
 const ADMIN_EMAIL = 'admin@tipper92.local';
+const APP_VERSION = '2026-10-06'; // bei jedem Update anpassen
 const LIGA   = 'bl1';
 const SAISON = '2026';
 const RUECKSERIE_FROM = 1;
@@ -291,6 +292,7 @@ const FUN_NAMES_MIDDLE = [
     <button onclick="doLogin()">Einloggen</button>
     <div id="login-err" class="login-err"></div>
     <div class="login-switch"><a onclick="showAdminLogin()">Admin-Zugang</a></div>
+    <div id="login-version" style="margin-top:12px;text-align:center;font-size:10px;color:var(--muted);opacity:.7"></div>
   </div>
 </div>
 
@@ -311,6 +313,7 @@ const FUN_NAMES_MIDDLE = [
     <div class="user-pill">
       <span>👤 <strong id="header-user"></strong></span>
       <button class="btn-sm" onclick="logout()">Abmelden</button>
+      <span id="app-version" style="font-size:10px;color:var(--muted);opacity:.7"></span>
     </div>
   </header>
 
@@ -395,6 +398,7 @@ const Validator = {
 // SUPABASE INIT
 // ══════════════════════════════════════
 const { createClient } = supabase;
+try { document.getElementById('login-version').textContent = 'Version ' + APP_VERSION; } catch(e) {}
 let db;
 try { db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) { console.warn('Supabase not configured'); }
 
@@ -553,6 +557,7 @@ async function bootApp() {
   document.getElementById('admin-login-overlay').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('header-user').textContent = esc(currentUser.name) + (isAdmin ? ' (Admin)' : '');
+  document.getElementById('app-version').textContent = 'v' + APP_VERSION;
   if (isAdmin) document.getElementById('admin-tab').style.display = '';
   await loadPlayers();
   if (isAdmin) await loadAdminPlayers();
